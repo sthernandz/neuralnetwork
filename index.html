@@ -191,7 +191,9 @@
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
         camera.position.z = 50;
-        camera.rotation.order = 'YXZ';
+        
+        // Usar un objeto para controlar la rotación de forma consistente
+        const cameraRotation = { x: 0, y: 0 };
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -367,14 +369,11 @@
             const gamma = event.gamma; // Rotación Y (-90 a 90)
             
             if (lastAlpha !== null && lastBeta !== null) {
-                // Solo usar gamma para rotación horizontal (Y)
-                // y beta para rotación vertical (X)
                 const deltaGamma = gamma - (window.lastGamma || gamma);
                 const deltaBeta = beta - lastBeta;
                 
-                // Permitir giros completos en 360° sin límites
-                camera.rotation.y -= deltaGamma * 0.02;
-                camera.rotation.x += deltaBeta * 0.02;
+                cameraRotation.y -= deltaGamma * 0.02;
+                cameraRotation.x += deltaBeta * 0.02;
                 
                 window.lastGamma = gamma;
             }
@@ -390,9 +389,8 @@
 
         function onDocumentMouseMove(event) {
             if (document.pointerLockElement === document.body) {
-                camera.rotation.y -= event.movementX * rotationSpeed;
-                camera.rotation.x -= event.movementY * rotationSpeed;
-                // Sin límites, permitir giros completos en 360°
+                cameraRotation.y -= event.movementX * rotationSpeed;
+                cameraRotation.x -= event.movementY * rotationSpeed;
             }
         }
 
@@ -415,6 +413,18 @@
             requestAnimationFrame(animate);
             updatePlayer();
             pointLight.position.copy(camera.position);
+
+            // Aplicar rotación usando cuaterniones para evitar gimbal lock
+            const quaternion = new THREE.Quaternion();
+            const yAxis = new THREE.Vector3(0, 1, 0);
+            const xAxis = new THREE.Vector3(1, 0, 0);
+            
+            quaternion.setFromAxisAngle(yAxis, cameraRotation.y);
+            const xQuaternion = new THREE.Quaternion();
+            xQuaternion.setFromAxisAngle(xAxis, cameraRotation.x);
+            quaternion.multiply(xQuaternion);
+            
+            camera.quaternion.copy(quaternion);
 
             nodeObjects.forEach(node => {
                 const label = node.children[1];

@@ -330,8 +330,8 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let lastAlpha = null;
-        let lastBeta = null;
+        let initialOrientation = null;
+        let baseRotation = { x: 0, y: 0 };
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -353,6 +353,10 @@
 
         function startGyro() {
             gyroEnabled = true;
+            initialOrientation = null;
+            baseRotation.x = camera.rotation.x;
+            baseRotation.y = camera.rotation.y;
+            
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
@@ -362,20 +366,58 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
+            const alpha = event.alpha; // Rotación Z (brújula: 0-360)
+            const beta = event.beta;   // Rotación X (inclinación adelante/atrás: -180 a 180)
+            const gamma = event.gamma; // Rotación Y (inclinación izquierda/derecha: -90 a 90)
+
+            if (alpha === null || beta === null || gamma === null) return;
+
+            // Calibración inicial
+            if (initialOrientation === null) {
+                initialOrientation = {
+                    alpha: alpha,
+                    beta: beta,
+                    gamma: gamma
+                };
+                return;
+            }
+
+            // Detectar orientación del dispositivo (landscape)
+            const isLandscape = Math.abs(gamma) > 45;
             
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+            if (isLandscape) {
+                // Modo horizontal (landscape)
+                // Convertir ángulos relativos a la posición inicial
+                let deltaGamma = (gamma - initialOrientation.gamma) * Math.PI / 180;
+                let deltaBeta = (beta - initialOrientation.beta) * Math.PI / 180;
                 
-                camera.rotation.y -= deltaAlpha * 0.5;
-                camera.rotation.x += deltaBeta * 0.5;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                // Determinar si está landscape-left o landscape-right
+                const landscapeRight = gamma > 0;
+                
+                if (landscapeRight) {
+                    // Celular inclinado hacia la derecha (landscape-right)
+                    camera.rotation.y = baseRotation.y - deltaBeta * 0.8;
+                    camera.rotation.x = baseRotation.x + deltaGamma * 0.8;
+                } else {
+                    // Celular inclinado hacia la izquierda (landscape-left)
+                    camera.rotation.y = baseRotation.y + deltaBeta * 0.8;
+                    camera.rotation.x = baseRotation.x - deltaGamma * 0.8;
+                }
+            } else {
+                // Modo vertical (portrait) - por si acaso
+                let deltaAlpha = (alpha - initialOrientation.alpha) * Math.PI / 180;
+                let deltaBeta = (beta - initialOrientation.beta) * Math.PI / 180;
+                
+                // Normalizar deltaAlpha para evitar saltos en el cruce de 0/360
+                if (deltaAlpha > Math.PI) deltaAlpha -= 2 * Math.PI;
+                if (deltaAlpha < -Math.PI) deltaAlpha += 2 * Math.PI;
+                
+                camera.rotation.y = baseRotation.y - deltaAlpha * 0.8;
+                camera.rotation.x = baseRotation.x + deltaBeta * 0.8;
             }
             
-            lastAlpha = alpha;
-            lastBeta = beta;
+            // Limitar rotación vertical para evitar volteretas
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

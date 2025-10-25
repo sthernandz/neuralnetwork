@@ -35,34 +35,23 @@
         }
         
         /* Controles móviles */
-        #mobile-controls {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 200;
-            display: none;
-        }
-        
-        .control-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            grid-template-rows: repeat(3, 60px);
-            gap: 10px;
-        }
-        
         .control-btn {
+            position: fixed;
             background: rgba(0, 136, 255, 0.3);
             border: 2px solid rgba(0, 136, 255, 0.8);
-            border-radius: 10px;
+            border-radius: 15px;
             color: white;
-            font-size: 24px;
-            display: flex;
+            font-size: 32px;
+            width: 70px;
+            height: 70px;
+            display: none;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             user-select: none;
-            box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 136, 255, 0.5);
             transition: all 0.1s;
+            z-index: 200;
         }
         
         .control-btn:active {
@@ -70,17 +59,29 @@
             transform: scale(0.95);
         }
         
-        .control-btn.center {
-            grid-column: 2;
-            grid-row: 2;
-            opacity: 0;
-            pointer-events: none;
+        #btn-up { 
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
         }
         
-        #btn-up { grid-column: 2; grid-row: 1; }
-        #btn-down { grid-column: 2; grid-row: 3; }
-        #btn-left { grid-column: 1; grid-row: 2; }
-        #btn-right { grid-column: 3; grid-row: 2; }
+        #btn-down { 
+            top: 50%;
+            left: 20px;
+            transform: translateY(-50%);
+        }
+        
+        #btn-left { 
+            bottom: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+        }
+        
+        #btn-right { 
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
         
         #gyro-btn {
             position: fixed;
@@ -108,15 +109,10 @@
     
     <button id="gyro-btn">Activar Giroscopio</button>
     
-    <div id="mobile-controls">
-        <div class="control-pad">
-            <div class="control-btn" id="btn-up">↑</div>
-            <div class="control-btn center"></div>
-            <div class="control-btn" id="btn-left">←</div>
-            <div class="control-btn" id="btn-down">↓</div>
-            <div class="control-btn" id="btn-right">→</div>
-        </div>
-    </div>
+    <div class="control-btn" id="btn-up">↑</div>
+    <div class="control-btn" id="btn-down">↓</div>
+    <div class="control-btn" id="btn-left">←</div>
+    <div class="control-btn" id="btn-right">→</div>
 
     <script type="module">
         import * as THREE from 'three';
@@ -295,7 +291,10 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         if (isMobile) {
-            document.getElementById('mobile-controls').style.display = 'block';
+            document.getElementById('btn-up').style.display = 'flex';
+            document.getElementById('btn-down').style.display = 'flex';
+            document.getElementById('btn-left').style.display = 'flex';
+            document.getElementById('btn-right').style.display = 'flex';
             document.getElementById('gyro-btn').style.display = 'block';
         }
 

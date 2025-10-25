@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Mapa Conceptual de SVM en 3D (Clásico)</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.157.0/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/examples/js/controls/DeviceOrientationControls.js"></script>
+    
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000000; color: #ffffff; font-family: 'Inter', sans-serif; }
+        canvas { display: block; }
+        
+        #startButton {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); z-index: 200;
+            padding: 20px 30px; font-size: 1.5em;
+            background-color: rgba(0, 255, 255, 0.7);
+            border: 2px solid #00ffff; color: #ffffff;
+            border-radius: 10px; cursor: pointer;
+            text-shadow: 0 0 5px #000;
+            display: none; /* Se activa por JS */
+        }
+        
+        #moveControls {
+            position: absolute; bottom: 30px; left: 30px;
+            z-index: 101; width: 150px; height: 150px;
+            display: none; /* Se activa al pulsar 'Start' */
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr;
+            opacity: 0.6;
+        }
+        
+        .moveBtn {
+            width: 50px; height: 50px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border: 1px solid #fff; color: #fff;
+            font-size: 24px; display: flex;
+            justify-content: center; align-items: center;
+            user-select: none;
+        }
+        
+        #move-up { grid-area: 1 / 2 / 2 / 3; }
+        #move-left { grid-area: 2 / 1 / 3 / 2; }
+        #move-right { grid-area: 2 / 3 / 3 / 4; }
+        #move-down { grid-area: 3 / 2 / 4 / 3; }
+    </style>
+</head>
+<body>
+    <div id="startButton">Iniciar Controles</div>
+    <div id="moveControls">
+        <div id="move-up" class="moveBtn">▲</div>
+        <div id="move-left" class="moveBtn">◄</div>
+        <div id="move-right" class="moveBtn">►</div>
+        <div id="move-down" class="moveBtn">▼</div>
+    </div>
+
+    <script>
+        // ***
+        // *** CAMBIO PRINCIPAL: Esperar a que el HTML esté listo
+        // ***
+        window.addEventListener('DOMContentLoaded', () => {
+
+            // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
+            const NETWORK_RADIUS = 600;
+            const concepts = [
+                { id: 'svm', name: 'Support Vector Machine (SVM)', category: 'algorithm' },
+                { id: 'supervised', name: 'Aprendizaje Supervisado', category: 'problem_type' },
+                { id: 'classification', name: 'Clasificación', category: 'problem_type' },
+                { id: 'regression', name: 'Regresión', category: 'problem_type' },
+                { id: 'hyperplane', name: 'Hiperplano', category: 'fundamental' },
+                { id: 'margin', name: 'Margen', category: 'fundamental' },
+                { id: 'support_vectors', name: 'Vectores de Soporte', category: 'fundamental' },
+                { id: 'linear_classification', name: 'Clasificación Lineal', category: 'technique' },
+                { id: 'nonlinear_classification', name: 'Clasificación No Lineal', category: 'technique' },
+                { id: 'hard_margin', name: 'Clasificación "Hard Margin"', category: 'technique' },
+                { id: 'soft_margin', name: 'Clasificación "Soft Margin"', category: 'technique' },
+                { id: 'kernel_trick', name: 'Truco Kernel', category: 'technique' },
+                { id: 'kernel_functions', name: 'Funciones Kernel', category: 'implementation' },
+                { id: 'poly_kernel', name: 'Kernel Polinomial', category: 'implementation' },
+                { id: 'rbf_kernel', name: 'Kernel RBF Gaussiano', category: 'implementation' },
+                { id: 'sigmoid_kernel', name: 'Kernel Sigmoideo', category: 'implementation' },
+                { id: 'scikit_learn', name: 'Scikit-Learn', category: 'implementation' },
+                { id: 'outliers', name: 'Outliers', category: 'challenge' },
+                { id: 'param_c', name: 'Parámetro C (Regularización)', category: 'challenge' },
+                { id: 'overfitting', name: 'Overfitting', category: 'challenge' },
+                { id: 'param_epsilon', name: 'Parámetro Épsilon (ε)', category: 'challenge' },
+                { id: 'param_degree', name: 'Grado (d)', category: 'challenge' }
+            ];
+
+            const relationships = [
+                { source: 'svm', target: 'supervised', label: 'es un tipo de' },
+                { source: 'svm', target: 'classification', label: 'se aplica a' },
+                { source: 'svm', target: 'regression', label: 'se aplica a' },
+                { source: 'classification', target: 'linear_classification', label: 'puede ser' },
+                { source: 'classification', target: 'nonlinear_classification', label: 'puede ser' },
+                { source: 'linear_classification', target: 'hyperplane', label: 'busca un' },
+                { source: 'hyperplane', target: 'margin', label: 'que maximiza el' },
+                { source: 'margin', target: 'support_vectors', label: 'definido por los' },
+                { source: 'linear_classification', target: 'hard_margin', label: 'variante' },
+                { source: 'linear_classification', target: 'soft_margin', label: 'variante' },
+                { source: 'hard_margin', target: 'outliers', label: 'es sensible a' },
+                { source: 'soft_margin', target: 'param_c', label: 'controlado por' },
+                { source: 'param_c', target: 'overfitting', label: 'un valor alto causa' },
+                { source: 'nonlinear_classification', target: 'kernel_trick', label: 'usa el' },
+                { source: 'kernel_trick', target: 'kernel_functions', label: 'se implementa con' },
+                { source: 'kernel_functions', target: 'poly_kernel', label: 'tipo' },
+                { source: 'kernel_functions', target: 'rbf_kernel', label: 'tipo' },
+                { source: 'kernel_functions', target: 'sigmoid_kernel', label: 'tipo' },
+                { source: 'poly_kernel', target: 'param_degree', label: 'controlado por' },
+                { source: 'param_degree', target: 'overfitting', label: 'un grado alto causa' },
+                { source: 'regression', target: 'margin', label: 'busca ajustar en el' },
+                { source: 'regression', target: 'param_epsilon', label: 'controlado por' },
+                { source: 'svm', target: 'scikit_learn', label: 'se implementa en' }
+            ];
+
+            const categoryColors = {
+                algorithm: new THREE.Color(0x0088ff),
+                problem_type: new THREE.Color(0x00ff88),
+                fundamental: new THREE.Color(0xff8800),
+                technique: new THREE.Color(0xaa00ff),
+                implementation: new THREE.Color(0xcccccc),
+                challenge: new THREE.Color(0xff0044)
+            };
+
+            // --- INICIALIZACIÓN DE LA ESCENA 3D ---
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 50;
+            camera.rotation.order = 'YXZ';
+            
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.toneMapping = THREE.ReinhardToneMapping;
+            document.body.appendChild(renderer.domElement);
+
+            // --- LUCES ---
+            const ambientLight = new THREE.AmbientLight(0x404040);
+            scene.add(ambientLight);
+            const pointLight = new THREE.PointLight(0xffffff, 1, 2000);
+            scene.add(pointLight);
+
+            // --- FUNCIÓN PARA CREAR TEXTO (SPRITES) ---
+            function makeTextSprite(message, opts) {
+                const parameters = opts || {};
+                const fontface = parameters.fontface || 'Arial';
+                const fontsize = parameters.fontsize || 20;
+                const textColor = parameters.textColor || { r: 255, g: 255, b: 255, a: 1.0 };
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                context.font = `Bold ${fontsize}px ${fontface}`;
+                const metrics = context.measureText(message);
+                const textWidth = metrics.width;
+                canvas.width = textWidth + 10;
+                canvas.height = fontsize + 10;
+                context.font = `Bold ${fontsize}px ${fontface}`;
+                context.fillStyle = `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
+                context.fillText(message, 5, fontsize - 2);
+                const texture = new THREE.Texture(canvas);
+                texture.needsUpdate = true;
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMaterial);
+                sprite.scale.set(canvas.width / 4, canvas.height / 4, 1.0);
+                return sprite;
+            }
+
+            // --- CREACIÓN DEL MAPA CONCEPTUAL 3D ---
+            const nodeObjects = new Map();
+            const nodeGeometry = new THREE.SphereGeometry(3, 24, 24);
+            
+            concepts.forEach(concept => {
+                const color = categoryColors[concept.category] || new THREE.Color(0xffffff);
+                const material = new THREE.MeshBasicMaterial({ color: color });
+                const nodeMesh = new THREE.Mesh(nodeGeometry, material);
+                
+                const nodeGroup = new THREE.Group();
+                nodeGroup.position.x = (Math.random() - 0.5) * NETWORK_RADIUS;
+                nodeGroup.position.y = (Math.random() - 0.5) * NETWORK_RADIUS;
+                nodeGroup.position.z = (Math.random() - 0.5) * NETWORK_RADIUS;
+                
+                const labelSprite = makeTextSprite(concept.name, {
+                    fontsize: 24,
+                    textColor: { r: color.r * 255, g: color.g * 255, b: color.b * 255, a: 1.0 }
+                });
+                labelSprite.position.set(0, 6, 0);
+
+                nodeGroup.add(nodeMesh);
+                nodeGroup.add(labelSprite);
+                
+                scene.add(nodeGroup);
+                nodeObjects.set(concept.id, nodeGroup);
+            });
+
+            relationships.forEach(rel => {
+                const startNode = nodeObjects.get(rel.source);
+                const endNode = nodeObjects.get(rel.target);
+                if (!startNode || !endNode) return;
+
+                const startColor = startNode.children[0].material.color;
+                const points = [startNode.position, endNode.position];
+                const linkGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const linkMaterial = new THREE.LineBasicMaterial({ color: startColor, transparent: true, opacity: 0.7 });
+                const line = new THREE.Line(linkGeometry, linkMaterial);
+                scene.add(line);
+
+                const midpoint = new THREE.Vector3().addVectors(startNode.position, endNode.position).multiplyScalar(0.5);
+                const unionSprite = makeTextSprite(rel.label, {
+                    fontsize: 16,
+                    textColor: { r: 0, g: 200, b: 200, a: 0.9 }
+                });
+                unionSprite.position.copy(midpoint);
+                scene.add(unionSprite);
+            });
+
+            // --- CONTROLES ---
+            const keyboard = {};
+            const playerSpeed = 2.0;
+            const rotationSpeed = 0.002;
+            
+            let gyroControls;
+            let useGyro = false;
+            
+            const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            // Ahora estos getElementById están seguros
+            const startButton = document.getElementById('startButton');
+            const moveControls = document.getElementById('moveControls');
+
+            if (isMobile) {
+                startButton.style.display = 'block';
+                startButton.addEventListener('click', () => {
+                    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                        DeviceOrientationEvent.requestPermission().then(permissionState => {
+                            if (permissionState === 'granted') {
+                                initGyro();
+                            } else {
+                                alert('Permiso de giroscopio denegado.');
+                            }
+                        }).catch(() => alert('Error al pedir permiso. Asegúrate de estar en HTTPS.'));
+                    } else {
+                        initGyro(); // Para Android y otros
+                    }
+                }, { once: true });
+
+                const btnUp = document.getElementById('move-up');
+                const btnDown = document.getElementById('move-down');
+                const btnLeft = document.getElementById('move-left');
+                const btnRight = document.getElementById('move-right');
+
+                function handlePress(key, e) { e.preventDefault(); keyboard[key] = true; }
+                function handleRelease(key) { keyboard[key] = false; }
+
+                btnUp.addEventListener('touchstart', (e) => handlePress('w', e), { passive: false });
+                btnUp.addEventListener('touchend', () => handleRelease('w'));
+                btnDown.addEventListener('touchstart', (e) => handlePress('s', e), { passive: false });
+                btnDown.addEventListener('touchend', () => handleRelease('s'));
+                btnLeft.addEventListener('touchstart', (e) => handlePress('a', e), { passive: false });
+                btnLeft.addEventListener('touchend', () => handleRelease('a'));
+                btnRight.addEventListener('touchstart', (e) => handlePress('d', e), { passive: false });
+                btnRight.addEventListener('touchend', () => handleRelease('d'));
+
+            } else {
+                document.addEventListener('keydown', (e) => keyboard[e.key.toLowerCase()] = true);
+                document.addEventListener('keyup', (e) => keyboard[e.key.toLowerCase()] = false);
+                document.addEventListener('mousemove', onDocumentMouseMove);
+                document.addEventListener('click', () => {
+                    document.body.requestPointerLock();
+                });
+            }
+            
+            function initGyro() {
+                gyroControls = new THREE.DeviceOrientationControls(camera);
+                gyroControls.connect();
+                useGyro = true;
+                
+                startButton.style.display = 'none';
+                moveControls.style.display = 'grid';
+            }
+
+            function onDocumentMouseMove(event) {
+                if (useGyro) return;
+                if (document.pointerLockElement === document.body) {
+                    camera.rotation.y -= event.movementX * rotationSpeed;
+                    camera.rotation.x -= event.movementY * rotationDpeed;
+                    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                }
+            }
+
+            function updatePlayer() {
+                if (keyboard['w']) camera.translateZ(-playerSpeed);
+                if (keyboard['s']) camera.translateZ(playerSpeed);
+                if (keyboard['a']) camera.translateX(-playerSpeed);
+                if (keyboard['d']) camera.translateX(playerSpeed);
+            }
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                if (useGyro && gyroControls) {
+                    gyroControls.update();
+                }
+                
+                updatePlayer();
+                pointLight.position.copy(camera.position);
+
+                nodeObjects.forEach(node => {
+                    const label = node.children[1];
+                    if (label) {
+                        label.quaternion.copy(camera.quaternion);
+                    }
+                });
+
+                renderer.render(scene, camera);
+            }
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+            
+            animate(); // Iniciar la animación
+        
+        }); // Fin del DOMContentLoaded
+    </script>
+</body>
+</html>

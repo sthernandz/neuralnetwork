@@ -38,7 +38,7 @@
         #mobile-controls {
             position: fixed;
             bottom: 20px;
-            left: 20px;
+            right: 20px;
             z-index: 200;
             display: none;
         }
@@ -330,14 +330,8 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let lastGamma = null;
+        let lastAlpha = null;
         let lastBeta = null;
-        let isLandscape = window.innerWidth > window.innerHeight;
-
-        // Detectar cambios de orientación
-        window.addEventListener('resize', () => {
-            isLandscape = window.innerWidth > window.innerHeight;
-        });
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -368,31 +362,19 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            // En modo horizontal usamos gamma (inclinación lateral) y beta (inclinación frontal)
-            const gamma = event.gamma; // Rotación Y en landscape (-90 a 90)
+            const alpha = event.alpha; // Rotación Z (0-360)
             const beta = event.beta;   // Rotación X (-180 a 180)
             
-            if (lastGamma !== null && lastBeta !== null) {
-                if (isLandscape) {
-                    // Modo horizontal: gamma controla rotación horizontal, beta controla vertical
-                    const deltaGamma = (gamma - lastGamma) * Math.PI / 180;
-                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                    
-                    camera.rotation.y -= deltaGamma * 0.8;
-                    camera.rotation.x += deltaBeta * 0.8;
-                    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-                } else {
-                    // Modo vertical (por si acaso)
-                    const deltaGamma = (gamma - lastGamma) * Math.PI / 180;
-                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                    
-                    camera.rotation.y += deltaBeta * 0.5;
-                    camera.rotation.x -= deltaGamma * 0.5;
-                    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-                }
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                
+                camera.rotation.y -= deltaAlpha * 0.5;
+                camera.rotation.x += deltaBeta * 0.5;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
             }
             
-            lastGamma = gamma;
+            lastAlpha = alpha;
             lastBeta = beta;
         }
 

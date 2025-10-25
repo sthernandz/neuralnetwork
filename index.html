@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mapa Conceptual de SVM en 3D</title>
+    <title>Mapa Conceptual SVM - Visor VR</title>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -15,99 +15,20 @@
     }
     </script>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            background-color: #000000;
-            color: #ffffff;
-            font-family: 'Inter', sans-serif;
-            touch-action: none;
-        }
-        canvas { display: block; }
-        #info {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            z-index: 100;
-            font-size: 1.2em;
-            text-shadow: 0 0 5px #00ffff, 0 0 10px #00ffff;
-        }
-        
-        /* Controles móviles */
-        #mobile-controls {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            z-index: 200;
-            display: none;
-        }
-        
-        .control-pad {
-            display: grid;
-            grid-template-columns: repeat(3, 60px);
-            grid-template-rows: repeat(3, 60px);
-            gap: 10px;
-        }
-        
-        .control-btn {
-            background: rgba(0, 136, 255, 0.3);
-            border: 2px solid rgba(0, 136, 255, 0.8);
-            border-radius: 10px;
-            color: white;
-            font-size: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            user-select: none;
-            box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
-            transition: all 0.1s;
-        }
-        
-        .control-btn:active {
-            background: rgba(0, 136, 255, 0.6);
-            transform: scale(0.95);
-        }
-        
-        .control-btn.center {
-            grid-column: 2;
-            grid-row: 2;
-            opacity: 0;
-            pointer-events: none;
-        }
-        
-        #btn-up { grid-column: 2; grid-row: 1; }
-        #btn-down { grid-column: 2; grid-row: 3; }
-        #btn-left { grid-column: 1; grid-row: 2; }
-        #btn-right { grid-column: 3; grid-row: 2; }
-        
-        #gyro-btn {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 200;
-            padding: 10px 20px;
-            background: rgba(170, 0, 255, 0.5);
-            border: 2px solid rgba(170, 0, 255, 0.8);
-            border-radius: 8px;
-            color: white;
-            font-size: 14px;
-            cursor: pointer;
-            display: none;
-            box-shadow: 0 0 10px rgba(170, 0, 255, 0.5);
-        }
-        
-        #gyro-btn:active {
-            background: rgba(170, 0, 255, 0.8);
-        }
+        body { margin: 0; overflow: hidden; background: #000; color: #fff; font-family: Inter, Arial, sans-serif; }
+        canvas { display:block }
+        #info { position:absolute; top:10px; width:100%; text-align:center; z-index:100; font-size:1.05rem; }
+        #mobile-controls { position:fixed; bottom:20px; left:20px; z-index:200; display:none }
+        .control-pad { display:grid; grid-template-columns:repeat(3,56px); grid-template-rows:repeat(3,56px); gap:8px }
+        .control-btn { background:rgba(0,136,255,0.25); border:2px solid rgba(0,136,255,0.7); border-radius:10px; color:#fff; font-size:20px; display:flex; align-items:center; justify-content:center; }
+        .control-btn:active{ transform:scale(.96) }
+        .control-btn.center{ opacity:0; pointer-events:none }
+        #gyro-btn { position:fixed; top:18px; right:18px; z-index:200; padding:10px 14px; background:rgba(170,0,255,0.45); border:2px solid rgba(170,0,255,0.85); border-radius:8px; color:#fff; font-size:13px; display:none }
     </style>
 </head>
 <body>
-    <div id="info">Mapa Conceptual de SVM</div>
-    
+    <div id="info">Mapa Conceptual de SVM — Visor VR</div>
     <button id="gyro-btn">Activar Giroscopio</button>
-    
     <div id="mobile-controls">
         <div class="control-pad">
             <div class="control-btn" id="btn-up">↑</div>
@@ -123,10 +44,13 @@
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { DeviceOrientationControls } from 'three/addons/controls/DeviceOrientationControls.js';
 
-        // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
+        // Parámetros
         const NETWORK_RADIUS = 600;
+        const BLOOM_LAYER = 1;
 
+        // Datos (idénticos a su versión original)
         const concepts = [
             { id: 'svm', name: 'Support Vector Machine (SVM)', category: 'algorithm' },
             { id: 'supervised', name: 'Aprendizaje Supervisado', category: 'problem_type' },
@@ -187,268 +111,167 @@
             challenge: new THREE.Color(0xff0044)
         };
 
-        // --- INICIALIZACIÓN DE LA ESCENA 3D ---
+        // Escena, cámara y renderer
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
-        camera.position.z = 50;
-        
-        // Usar un objeto para controlar la rotación de forma consistente
-        const cameraRotation = { x: 0, y: 0 };
+        const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 2000);
+        camera.position.set(0, 0, 50);
+        camera.rotation.order = 'YXZ';
+
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.toneMapping = THREE.ReinhardToneMapping;
+        renderer.setSize(innerWidth, innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // --- POST-PROCESSING PARA EL EFECTO GLOW (BLOOM) ---
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
-        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        composer.addPass(bloomPass);
+        const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 1.5, 0.4, 0.85);
+        composer.addPass(bloom);
 
-        const BLOOM_LAYER = 1;
-
-        // --- LUCES ---
-        const ambientLight = new THREE.AmbientLight(0x404040);
-        scene.add(ambientLight);
+        // luces
+        scene.add(new THREE.AmbientLight(0x404040));
         const pointLight = new THREE.PointLight(0xffffff, 1, 2000);
         scene.add(pointLight);
 
-        // --- FUNCIÓN PARA CREAR TEXTO (SPRITES) ---
-        function makeTextSprite(message, opts) {
-            const parameters = opts || {};
-            const fontface = parameters.fontface || 'Arial';
-            const fontsize = parameters.fontsize || 20;
-            const textColor = parameters.textColor || { r: 255, g: 255, b: 255, a: 1.0 };
+        // helpers: texto como sprite
+        function makeTextSprite(message, opts = {}){
+            const fontface = opts.fontface || 'Arial';
+            const fontsize = opts.fontsize || 20;
+            const color = opts.textColor || { r:255,g:255,b:255,a:1 };
             const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            context.font = `Bold ${fontsize}px ${fontface}`;
-            const metrics = context.measureText(message);
-            const textWidth = metrics.width;
-            canvas.width = textWidth + 10;
-            canvas.height = fontsize + 10;
-            context.font = `Bold ${fontsize}px ${fontface}`;
-            context.fillStyle = `rgba(${textColor.r}, ${textColor.g}, ${textColor.b}, ${textColor.a})`;
-            context.fillText(message, 5, fontsize - 2);
-            const texture = new THREE.Texture(canvas);
-            texture.needsUpdate = true;
-            const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-            const sprite = new THREE.Sprite(spriteMaterial);
-            sprite.scale.set(canvas.width / 4, canvas.height / 4, 1.0);
-            return sprite;
+            const ctx = canvas.getContext('2d');
+            ctx.font = `Bold ${fontsize}px ${fontface}`;
+            const metrics = ctx.measureText(message);
+            const w = Math.ceil(metrics.width)+10;
+            const h = fontsize+10;
+            canvas.width = w; canvas.height = h;
+            ctx.font = `Bold ${fontsize}px ${fontface}`;
+            ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
+            ctx.fillText(message, 5, fontsize-2);
+            const tex = new THREE.Texture(canvas); tex.needsUpdate = true;
+            const mat = new THREE.SpriteMaterial({ map: tex });
+            const spr = new THREE.Sprite(mat);
+            spr.scale.set(w/4, h/4, 1);
+            return spr;
         }
 
-        // --- CREACIÓN DEL MAPA CONCEPTUAL 3D ---
+        // crear nodos y enlaces
         const nodeObjects = new Map();
-        const nodeGeometry = new THREE.SphereGeometry(3, 24, 24);
+        const nodeGeom = new THREE.SphereGeometry(3, 24, 24);
 
-        concepts.forEach(concept => {
-            const color = categoryColors[concept.category] || new THREE.Color(0xffffff);
-            const material = new THREE.MeshBasicMaterial({ color: color });
-            const nodeMesh = new THREE.Mesh(nodeGeometry, material);
-            
-            const nodeGroup = new THREE.Group();
-            nodeGroup.position.x = (Math.random() - 0.5) * NETWORK_RADIUS;
-            nodeGroup.position.y = (Math.random() - 0.5) * NETWORK_RADIUS;
-            nodeGroup.position.z = (Math.random() - 0.5) * NETWORK_RADIUS;
-            
-            const labelSprite = makeTextSprite(concept.name, {
-                fontsize: 24,
-                textColor: { r: color.r * 255, g: color.g * 255, b: color.b * 255, a: 1.0 }
-            });
-            labelSprite.position.set(0, 6, 0);
-
-            nodeGroup.add(nodeMesh);
-            nodeGroup.add(labelSprite);
-            nodeGroup.layers.enable(BLOOM_LAYER);
-            
-            scene.add(nodeGroup);
-            nodeObjects.set(concept.id, nodeGroup);
+        concepts.forEach(c => {
+            const color = categoryColors[c.category] || new THREE.Color(0xffffff);
+            const mat = new THREE.MeshBasicMaterial({ color });
+            const mesh = new THREE.Mesh(nodeGeom, mat);
+            const group = new THREE.Group();
+            group.position.set((Math.random()-0.5)*NETWORK_RADIUS, (Math.random()-0.5)*NETWORK_RADIUS, (Math.random()-0.5)*NETWORK_RADIUS);
+            const label = makeTextSprite(c.name, { fontsize:24, textColor:{ r: Math.floor(color.r*255), g: Math.floor(color.g*255), b: Math.floor(color.b*255), a:1}});
+            label.position.set(0,6,0);
+            group.add(mesh); group.add(label);
+            group.layers.enable(BLOOM_LAYER);
+            scene.add(group);
+            nodeObjects.set(c.id, group);
         });
 
-        relationships.forEach(rel => {
-            const startNode = nodeObjects.get(rel.source);
-            const endNode = nodeObjects.get(rel.target);
-            if (!startNode || !endNode) return;
-
-            const startColor = startNode.children[0].material.color;
-            const points = [startNode.position, endNode.position];
-            const linkGeometry = new THREE.BufferGeometry().setFromPoints(points);
-            const linkMaterial = new THREE.LineBasicMaterial({ color: startColor, transparent: true, opacity: 0.7 });
-            const line = new THREE.Line(linkGeometry, linkMaterial);
+        relationships.forEach(rel=>{
+            const a = nodeObjects.get(rel.source);
+            const b = nodeObjects.get(rel.target);
+            if(!a||!b) return;
+            const pts = [a.position.clone(), b.position.clone()];
+            const geom = new THREE.BufferGeometry().setFromPoints(pts);
+            const mat = new THREE.LineBasicMaterial({ color: a.children[0].material.color, transparent:true, opacity:0.7 });
+            const line = new THREE.Line(geom, mat);
             line.layers.enable(BLOOM_LAYER);
             scene.add(line);
-
-            const midpoint = new THREE.Vector3().addVectors(startNode.position, endNode.position).multiplyScalar(0.5);
-            const unionSprite = makeTextSprite(rel.label, {
-                fontsize: 16,
-                textColor: { r: 0, g: 200, b: 200, a: 0.9 }
-            });
-            unionSprite.position.copy(midpoint);
-            unionSprite.layers.enable(BLOOM_LAYER);
-            scene.add(unionSprite);
+            const mid = new THREE.Vector3().addVectors(a.position, b.position).multiplyScalar(0.5);
+            const lbl = makeTextSprite(rel.label, { fontsize:16, textColor:{ r:0,g:200,b:200,a:0.9 }});
+            lbl.position.copy(mid);
+            lbl.layers.enable(BLOOM_LAYER);
+            scene.add(lbl);
         });
 
-        // --- CONTROLES ---
-        const keyboard = {};
-        const playerSpeed = 2.0;
-        const rotationSpeed = 0.002;
+        // controles y navegación estilo "visor VR" con rotaciones infinitas
+        let deviceControls = null;
+        let gyroActive = false;
 
-        // Detectar dispositivo móvil
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        
-        if (isMobile) {
-            document.getElementById('mobile-controls').style.display = 'block';
-            document.getElementById('gyro-btn').style.display = 'block';
-        }
+        if(isMobile){ document.getElementById('mobile-controls').style.display='block'; document.getElementById('gyro-btn').style.display='block'; }
 
-        // --- CONTROLES DE TECLADO ---
-        document.addEventListener('keydown', (e) => keyboard[e.key.toLowerCase()] = true);
-        document.addEventListener('keyup', (e) => keyboard[e.key.toLowerCase()] = false);
+        // movimiento de la "cámara jugador" (traslaciones)
+        const keyboard = {}; const touchControls = { up:false, down:false, left:false, right:false };
+        const playerSpeed = 2.0; const mouseRotationSpeed = 0.0025;
 
-        // --- CONTROLES TÁCTILES ---
-        const touchControls = {
-            up: false,
-            down: false,
-            left: false,
-            right: false
-        };
+        document.addEventListener('keydown', e => keyboard[e.key.toLowerCase()]=true);
+        document.addEventListener('keyup', e => keyboard[e.key.toLowerCase()]=false);
 
-        function setupTouchControl(btnId, direction) {
-            const btn = document.getElementById(btnId);
-            btn.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                touchControls[direction] = true;
-            });
-            btn.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                touchControls[direction] = false;
-            });
-        }
+        // touch buttons
+        function setupTouchControl(btnId, dir){ const btn=document.getElementById(btnId); btn.addEventListener('touchstart', e=>{ e.preventDefault(); touchControls[dir]=true }); btn.addEventListener('touchend', e=>{ e.preventDefault(); touchControls[dir]=false }); }
+        setupTouchControl('btn-up','up'); setupTouchControl('btn-down','down'); setupTouchControl('btn-left','left'); setupTouchControl('btn-right','right');
 
-        setupTouchControl('btn-up', 'up');
-        setupTouchControl('btn-down', 'down');
-        setupTouchControl('btn-left', 'left');
-        setupTouchControl('btn-right', 'right');
-
-        // --- GIROSCOPIO ---
-        let gyroEnabled = false;
-        let lastAlpha = null;
-        let lastBeta = null;
-
-        async function enableGyro() {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requiere permiso
-                try {
-                    const permission = await DeviceOrientationEvent.requestPermission();
-                    if (permission === 'granted') {
-                        startGyro();
-                    }
-                } catch (error) {
-                    console.error('Error al solicitar permiso:', error);
-                    alert('No se pudo activar el giroscopio');
-                }
-            } else {
-                // Android y otros navegadores
-                startGyro();
+        // Giroscopio: usa DeviceOrientationControls para mapear alpha/beta/gamma a quaternion de cámara
+        const gyroBtn = document.getElementById('gyro-btn');
+        async function enableGyro(){
+            if(typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function'){
+                try{
+                    const perm = await DeviceOrientationEvent.requestPermission();
+                    if(perm !== 'granted') throw new Error('perm denied');
+                }catch(err){ alert('Permiso de giroscopio denegado o no disponible'); return; }
             }
+            if(!deviceControls){ deviceControls = new DeviceOrientationControls(camera); deviceControls.connect(); }
+            gyroActive = true; gyroBtn.textContent = 'Giroscopio Activo'; gyroBtn.style.background='rgba(0,255,136,0.45)';
         }
+        gyroBtn.addEventListener('click', enableGyro);
 
-        function startGyro() {
-            gyroEnabled = true;
-            document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
-            document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
-            
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-
-        function handleOrientation(event) {
-            if (!gyroEnabled) return;
-
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            const gamma = event.gamma; // Rotación Y (-90 a 90)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaGamma = gamma - (window.lastGamma || gamma);
-                const deltaBeta = beta - lastBeta;
-                
-                cameraRotation.y -= deltaGamma * 0.02;
-                cameraRotation.x += deltaBeta * 0.02;
-                
-                window.lastGamma = gamma;
+        // ROTACIONES POR RATÓN (desktop) usando pointer lock y rotación por ejes del mundo
+        const rotationAxis = new THREE.Vector3(0,1,0);
+        document.addEventListener('mousemove', (ev)=>{
+            if(document.pointerLockElement === document.body && !gyroActive){
+                const mx = ev.movementX || 0; const my = ev.movementY || 0;
+                // yaw (rotación alrededor del eje Y global)
+                camera.rotateOnWorldAxis(rotationAxis, -mx * mouseRotationSpeed);
+                // pitch (rotación local X)
+                camera.rotateX(-my * mouseRotationSpeed);
             }
-            
-            lastAlpha = alpha;
-            lastBeta = beta;
-        }
+        });
 
-        document.getElementById('gyro-btn').addEventListener('click', enableGyro);
+        // Habilitar pointer lock con click en desktop
+        if(!isMobile){ document.addEventListener('click', ()=>{ if(document.pointerLockElement!==document.body) document.body.requestPointerLock(); }); }
 
-        // --- CONTROL DE RATÓN (DESKTOP) ---
-        document.addEventListener('mousemove', onDocumentMouseMove);
-
-        function onDocumentMouseMove(event) {
-            if (document.pointerLockElement === document.body) {
-                cameraRotation.y -= event.movementX * rotationSpeed;
-                cameraRotation.x -= event.movementY * rotationSpeed;
+        // Touch drag para rotar (mobile cuando no se usa giroscopio)
+        let lastTouch = null;
+        window.addEventListener('touchstart', e=>{ if(e.touches.length===1){ lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } });
+        window.addEventListener('touchmove', e=>{
+            if(e.touches.length===1 && !gyroActive && lastTouch){
+                const t = e.touches[0];
+                const dx = t.clientX - lastTouch.x; const dy = t.clientY - lastTouch.y;
+                camera.rotateOnWorldAxis(rotationAxis, -dx * mouseRotationSpeed);
+                camera.rotateX(-dy * mouseRotationSpeed);
+                lastTouch = { x: t.clientX, y: t.clientY };
             }
+        }, { passive:false });
+        window.addEventListener('touchend', ()=>{ lastTouch = null; });
+
+        // actualización de movimiento
+        function updateMovement(){
+            if(keyboard['w'] || keyboard['arrowup'] || touchControls.up) camera.translateZ(-playerSpeed);
+            if(keyboard['s'] || keyboard['arrowdown'] || touchControls.down) camera.translateZ(playerSpeed);
+            if(keyboard['a'] || keyboard['arrowleft'] || touchControls.left) camera.translateX(-playerSpeed);
+            if(keyboard['d'] || keyboard['arrowright'] || touchControls.right) camera.translateX(playerSpeed);
         }
 
-        function updatePlayer() {
-            // Controles de teclado
-            if (keyboard['w'] || keyboard['arrowup']) camera.translateZ(-playerSpeed);
-            if (keyboard['s'] || keyboard['arrowdown']) camera.translateZ(playerSpeed);
-            if (keyboard['a'] || keyboard['arrowleft']) camera.translateX(-playerSpeed);
-            if (keyboard['d'] || keyboard['arrowright']) camera.translateX(playerSpeed);
-            
-            // Controles táctiles
-            if (touchControls.up) camera.translateZ(-playerSpeed);
-            if (touchControls.down) camera.translateZ(playerSpeed);
-            if (touchControls.left) camera.translateX(-playerSpeed);
-            if (touchControls.right) camera.translateX(playerSpeed);
-        }
-        
-        // --- LOOP DE ANIMACIÓN ---
-        function animate() {
+        // mantener los labels mirando a la cámara
+        function faceLabels(){ nodeObjects.forEach(node=>{ const label=node.children[1]; if(label) label.quaternion.copy(camera.quaternion); }); }
+
+        // loop de animación
+        function animate(){
             requestAnimationFrame(animate);
-            updatePlayer();
+            updateMovement();
             pointLight.position.copy(camera.position);
-
-            // Aplicar rotación usando cuaterniones para evitar gimbal lock
-            const quaternion = new THREE.Quaternion();
-            const yAxis = new THREE.Vector3(0, 1, 0);
-            const xAxis = new THREE.Vector3(1, 0, 0);
-            
-            quaternion.setFromAxisAngle(yAxis, cameraRotation.y);
-            const xQuaternion = new THREE.Quaternion();
-            xQuaternion.setFromAxisAngle(xAxis, cameraRotation.x);
-            quaternion.multiply(xQuaternion);
-            
-            camera.quaternion.copy(quaternion);
-
-            nodeObjects.forEach(node => {
-                const label = node.children[1];
-                if (label) {
-                    label.quaternion.copy(camera.quaternion);
-                }
-            });
-
+            faceLabels();
+            if(gyroActive && deviceControls) deviceControls.update();
             composer.render();
         }
 
-        // --- MANEJO DE VENTANA ---
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        });
-        
-        if (!isMobile) {
-            document.addEventListener('click', () => {
-                document.body.requestPointerLock();
-            });
-        }
+        // resize
+        window.addEventListener('resize', ()=>{ camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); composer.setSize(innerWidth, innerHeight); });
 
         animate();
     </script>

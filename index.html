@@ -101,12 +101,69 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
+        
+        #gyro-debug {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 200;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.5);
+            border-radius: 8px;
+            color: #00ffff;
+            font-size: 12px;
+            font-family: monospace;
+            display: none;
+            min-width: 200px;
+        }
+        
+        .debug-row {
+            margin: 3px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .debug-label {
+            color: #00ff88;
+            margin-right: 10px;
+        }
+        
+        .debug-value {
+            color: #ffffff;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div id="info">Mapa Conceptual de SVM</div>
     
     <button id="gyro-btn">Activar Giroscopio</button>
+    
+    <div id="gyro-debug">
+        <div class="debug-row">
+            <span class="debug-label">Alpha (α) - Brújula:</span>
+            <span class="debug-value" id="alpha-val">0°</span>
+        </div>
+        <div class="debug-row">
+            <span class="debug-label">Beta (β) - Arriba/Abajo:</span>
+            <span class="debug-value" id="beta-val">0°</span>
+        </div>
+        <div class="debug-row">
+            <span class="debug-label">Gamma (γ) - Izq/Der:</span>
+            <span class="debug-value" id="gamma-val">0°</span>
+        </div>
+        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0, 255, 255, 0.3);">
+            <div class="debug-row">
+                <span class="debug-label">Cámara Y:</span>
+                <span class="debug-value" id="cam-y">0°</span>
+            </div>
+            <div class="debug-row">
+                <span class="debug-label">Cámara X:</span>
+                <span class="debug-value" id="cam-x">0°</span>
+            </div>
+        </div>
+    </div>
     
     <div id="mobile-controls">
         <div class="control-pad">
@@ -355,6 +412,7 @@
             gyroEnabled = true;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
+            document.getElementById('gyro-debug').style.display = 'block';
             
             window.addEventListener('deviceorientation', handleOrientation);
         }
@@ -362,8 +420,14 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            const gamma = event.gamma; // Rotación Y (-90 a 90)
+            const alpha = event.alpha || 0; // Rotación Z (0-360)
+            const beta = event.beta || 0;   // Rotación X (-180 a 180)
+            const gamma = event.gamma || 0; // Rotación Y (-90 a 90)
+            
+            // Actualizar valores de debug
+            document.getElementById('alpha-val').textContent = alpha.toFixed(1) + '°';
+            document.getElementById('beta-val').textContent = beta.toFixed(1) + '°';
+            document.getElementById('gamma-val').textContent = gamma.toFixed(1) + '°';
             
             if (lastBeta !== null) {
                 const deltaBeta = (beta - lastBeta) * Math.PI / 180;
@@ -373,6 +437,12 @@
                 camera.rotation.x += deltaBeta * 0.5;
                 camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
             }
+            
+            // Actualizar valores de cámara
+            const camYDeg = (camera.rotation.y * 180 / Math.PI).toFixed(1);
+            const camXDeg = (camera.rotation.x * 180 / Math.PI).toFixed(1);
+            document.getElementById('cam-y').textContent = camYDeg + '°';
+            document.getElementById('cam-x').textContent = camXDeg + '°';
             
             lastAlpha = gamma;
             lastBeta = beta;

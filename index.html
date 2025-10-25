@@ -102,7 +102,7 @@
             background: rgba(170, 0, 255, 0.8);
         }
         
-        #gyro-data {
+        #orientation-data {
             position: fixed;
             top: 70px;
             right: 20px;
@@ -112,27 +112,20 @@
             border: 2px solid rgba(0, 255, 255, 0.6);
             border-radius: 8px;
             color: white;
-            font-size: 12px;
             font-family: 'Courier New', monospace;
+            font-size: 12px;
             display: none;
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
-            min-width: 200px;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            line-height: 1.6;
         }
         
-        .gyro-value {
-            margin: 5px 0;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .gyro-label {
+        .data-label {
             color: #00ffff;
             font-weight: bold;
         }
         
-        .gyro-number {
+        .data-value {
             color: #00ff88;
-            text-align: right;
         }
     </style>
 </head>
@@ -140,6 +133,16 @@
     <div id="info">Mapa Conceptual de SVM</div>
     
     <button id="gyro-btn">Activar Giroscopio</button>
+    
+    <div id="orientation-data">
+        <div><span class="data-label">📱 GIROSCOPIO</span></div>
+        <div>Alpha (α): <span class="data-value" id="alpha-val">0°</span></div>
+        <div>Beta (β): <span class="data-value" id="beta-val">0°</span></div>
+        <div>Gamma (γ): <span class="data-value" id="gamma-val">0°</span></div>
+        <div style="margin-top: 10px;"><span class="data-label">📷 CÁMARA</span></div>
+        <div>Rotación Y: <span class="data-value" id="cam-y">0°</span></div>
+        <div>Rotación X: <span class="data-value" id="cam-x">0°</span></div>
+    </div>
     
     <div id="mobile-controls">
         <div class="control-pad">
@@ -388,6 +391,7 @@
             gyroEnabled = true;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
+            document.getElementById('orientation-data').style.display = 'block';
             
             window.addEventListener('deviceorientation', handleOrientation);
         }
@@ -397,7 +401,12 @@
 
             const alpha = event.alpha; // Rotación Z (0-360) - Horizontal
             const beta = event.beta;   // Rotación X (-180 a 180) - Vertical
-            // gamma ignorado para evitar inclinación lateral
+            const gamma = event.gamma; // Rotación Y (-90 a 90) - Lateral (no usado)
+            
+            // Actualizar display de valores del giroscopio
+            document.getElementById('alpha-val').textContent = alpha ? alpha.toFixed(1) + '°' : 'N/A';
+            document.getElementById('beta-val').textContent = beta ? beta.toFixed(1) + '°' : 'N/A';
+            document.getElementById('gamma-val').textContent = gamma ? gamma.toFixed(1) + '°' : 'N/A';
             
             if (lastAlpha !== null && lastBeta !== null) {
                 const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
@@ -445,6 +454,12 @@
             requestAnimationFrame(animate);
             updatePlayer();
             pointLight.position.copy(camera.position);
+
+            // Actualizar valores de rotación de cámara
+            const camYDeg = (camera.rotation.y * 180 / Math.PI).toFixed(1);
+            const camXDeg = (camera.rotation.x * 180 / Math.PI).toFixed(1);
+            document.getElementById('cam-y').textContent = camYDeg + '°';
+            document.getElementById('cam-x').textContent = camXDeg + '°';
 
             nodeObjects.forEach(node => {
                 const label = node.children[1];

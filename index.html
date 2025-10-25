@@ -38,7 +38,7 @@
         #mobile-controls {
             position: fixed;
             bottom: 20px;
-            right: 20px;
+            left: 20px;
             z-index: 200;
             display: none;
         }
@@ -330,8 +330,7 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let lastAlpha = null;
-        let lastBeta = null;
+        let baseOrientation = null;
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -353,6 +352,7 @@
 
         function startGyro() {
             gyroEnabled = true;
+            baseOrientation = null;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
@@ -362,20 +362,41 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
+            const alpha = event.alpha || 0; // Rotación Z (brújula)
+            const beta = event.beta || 0;   // Rotación X (inclinación frontal)
+            const gamma = event.gamma || 0; // Rotación Y (inclinación lateral)
             
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y -= deltaAlpha * 0.5;
-                camera.rotation.x += deltaBeta * 0.5;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            // Guardar orientación base en el primer frame
+            if (baseOrientation === null) {
+                baseOrientation = {
+                    alpha: alpha,
+                    beta: beta,
+                    gamma: gamma
+                };
+                return;
             }
             
-            lastAlpha = alpha;
-            lastBeta = beta;
+            // Calcular diferencias desde la orientación base
+            let deltaAlpha = alpha - baseOrientation.alpha;
+            let deltaBeta = beta - baseOrientation.beta;
+            let deltaGamma = gamma - baseOrientation.gamma;
+            
+            // Manejar el wraparound del alpha (0-360 grados)
+            if (deltaAlpha > 180) deltaAlpha -= 360;
+            if (deltaAlpha < -180) deltaAlpha += 360;
+            
+            // Convertir a radianes y aplicar a la cámara
+            // Para modo VR, invertimos los ejes para que coincidan con el movimiento natural
+            camera.rotation.y = -deltaAlpha * Math.PI / 180;
+            
+            // Beta controla pitch (mirar arriba/abajo)
+            camera.rotation.x = -deltaBeta * Math.PI / 180;
+            
+            // Limitar la rotación vertical
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            
+            // Gamma controla roll (inclinación lateral) - opcional, puedes comentar si prefieres
+            camera.rotation.z = deltaGamma * Math.PI / 180 * 0.3; // Multiplicador reducido para suavizar
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

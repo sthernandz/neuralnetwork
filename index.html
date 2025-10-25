@@ -35,23 +35,34 @@
         }
         
         /* Controles móviles */
-        .control-btn {
+        #mobile-controls {
             position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 200;
+            display: none;
+        }
+        
+        .control-pad {
+            display: grid;
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+            gap: 10px;
+        }
+        
+        .control-btn {
             background: rgba(0, 136, 255, 0.3);
             border: 2px solid rgba(0, 136, 255, 0.8);
-            border-radius: 15px;
+            border-radius: 10px;
             color: white;
-            font-size: 32px;
+            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             user-select: none;
-            box-shadow: 0 0 15px rgba(0, 136, 255, 0.5);
+            box-shadow: 0 0 10px rgba(0, 136, 255, 0.5);
             transition: all 0.1s;
-            z-index: 200;
-            width: 70px;
-            height: 70px;
         }
         
         .control-btn:active {
@@ -59,29 +70,17 @@
             transform: scale(0.95);
         }
         
-        #btn-up {
-            top: 50%;
-            right: 20px;
-            transform: translateY(-50%);
+        .control-btn.center {
+            grid-column: 2;
+            grid-row: 2;
+            opacity: 0;
+            pointer-events: none;
         }
         
-        #btn-down {
-            top: 50%;
-            left: 20px;
-            transform: translateY(-50%);
-        }
-        
-        #btn-left {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        #btn-right {
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-down { grid-column: 2; grid-row: 3; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
         
         #gyro-btn {
             position: fixed;
@@ -109,10 +108,15 @@
     
     <button id="gyro-btn">Activar Giroscopio</button>
     
-    <div class="control-btn" id="btn-up" style="display: none;">↑</div>
-    <div class="control-btn" id="btn-down" style="display: none;">↓</div>
-    <div class="control-btn" id="btn-left" style="display: none;">←</div>
-    <div class="control-btn" id="btn-right" style="display: none;">→</div>
+    <div id="mobile-controls">
+        <div class="control-pad">
+            <div class="control-btn" id="btn-up">↑</div>
+            <div class="control-btn center"></div>
+            <div class="control-btn" id="btn-left">←</div>
+            <div class="control-btn" id="btn-down">↓</div>
+            <div class="control-btn" id="btn-right">→</div>
+        </div>
+    </div>
 
     <script type="module">
         import * as THREE from 'three';
@@ -291,10 +295,7 @@
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
         
         if (isMobile) {
-            document.getElementById('btn-up').style.display = 'flex';
-            document.getElementById('btn-down').style.display = 'flex';
-            document.getElementById('btn-left').style.display = 'flex';
-            document.getElementById('btn-right').style.display = 'flex';
+            document.getElementById('mobile-controls').style.display = 'block';
             document.getElementById('gyro-btn').style.display = 'block';
         }
 
@@ -329,8 +330,14 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let initialOrientation = null;
-        let baseRotation = { x: 0, y: 0 };
+        let lastGamma = null;
+        let lastBeta = null;
+        let isLandscape = window.innerWidth > window.innerHeight;
+
+        // Detectar cambios de orientación
+        window.addEventListener('resize', () => {
+            isLandscape = window.innerWidth > window.innerHeight;
+        });
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -352,10 +359,6 @@
 
         function startGyro() {
             gyroEnabled = true;
-            initialOrientation = null;
-            baseRotation.x = camera.rotation.x;
-            baseRotation.y = camera.rotation.y;
-            
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
@@ -365,58 +368,32 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (brújula: 0-360)
-            const beta = event.beta;   // Rotación X (inclinación adelante/atrás: -180 a 180)
-            const gamma = event.gamma; // Rotación Y (inclinación izquierda/derecha: -90 a 90)
-
-            if (alpha === null || beta === null || gamma === null) return;
-
-            // Calibración inicial
-            if (initialOrientation === null) {
-                initialOrientation = {
-                    alpha: alpha,
-                    beta: beta,
-                    gamma: gamma
-                };
-                return;
-            }
-
-            // Detectar orientación del dispositivo (landscape)
-            const isLandscape = Math.abs(gamma) > 45;
+            // En modo horizontal usamos gamma (inclinación lateral) y beta (inclinación frontal)
+            const gamma = event.gamma; // Rotación Y en landscape (-90 a 90)
+            const beta = event.beta;   // Rotación X (-180 a 180)
             
-            if (isLandscape) {
-                // Modo horizontal (landscape)
-                // Convertir ángulos relativos a la posición inicial
-                let deltaGamma = (gamma - initialOrientation.gamma) * Math.PI / 180;
-                let deltaBeta = (beta - initialOrientation.beta) * Math.PI / 180;
-                
-                // Determinar si está landscape-left o landscape-right
-                const landscapeRight = gamma > 0;
-                
-                if (landscapeRight) {
-                    // Celular inclinado hacia la derecha (landscape-right)
-                    camera.rotation.y = baseRotation.y - deltaBeta * 0.8;
-                    camera.rotation.x = baseRotation.x + deltaGamma * 0.8;
+            if (lastGamma !== null && lastBeta !== null) {
+                if (isLandscape) {
+                    // Modo horizontal: gamma controla rotación horizontal, beta controla vertical
+                    const deltaGamma = (gamma - lastGamma) * Math.PI / 180;
+                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                    
+                    camera.rotation.y -= deltaGamma * 0.8;
+                    camera.rotation.x += deltaBeta * 0.8;
+                    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
                 } else {
-                    // Celular inclinado hacia la izquierda (landscape-left)
-                    camera.rotation.y = baseRotation.y + deltaBeta * 0.8;
-                    camera.rotation.x = baseRotation.x - deltaGamma * 0.8;
+                    // Modo vertical (por si acaso)
+                    const deltaGamma = (gamma - lastGamma) * Math.PI / 180;
+                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                    
+                    camera.rotation.y += deltaBeta * 0.5;
+                    camera.rotation.x -= deltaGamma * 0.5;
+                    camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
                 }
-            } else {
-                // Modo vertical (portrait) - por si acaso
-                let deltaAlpha = (alpha - initialOrientation.alpha) * Math.PI / 180;
-                let deltaBeta = (beta - initialOrientation.beta) * Math.PI / 180;
-                
-                // Normalizar deltaAlpha para evitar saltos en el cruce de 0/360
-                if (deltaAlpha > Math.PI) deltaAlpha -= 2 * Math.PI;
-                if (deltaAlpha < -Math.PI) deltaAlpha += 2 * Math.PI;
-                
-                camera.rotation.y = baseRotation.y - deltaAlpha * 0.8;
-                camera.rotation.x = baseRotation.x + deltaBeta * 0.8;
             }
             
-            // Limitar rotación vertical para evitar volteretas
-            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            lastGamma = gamma;
+            lastBeta = beta;
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

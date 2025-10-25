@@ -42,9 +42,7 @@
             border-radius: 15px;
             color: white;
             font-size: 32px;
-            width: 70px;
-            height: 70px;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -52,6 +50,8 @@
             box-shadow: 0 0 15px rgba(0, 136, 255, 0.5);
             transition: all 0.1s;
             z-index: 200;
+            width: 70px;
+            height: 70px;
         }
         
         .control-btn:active {
@@ -59,28 +59,28 @@
             transform: scale(0.95);
         }
         
-        #btn-up { 
+        #btn-up {
             top: 50%;
             right: 20px;
             transform: translateY(-50%);
         }
         
-        #btn-down { 
+        #btn-down {
             top: 50%;
             left: 20px;
             transform: translateY(-50%);
         }
         
-        #btn-left { 
-            bottom: 50%;
+        #btn-left {
+            bottom: 20px;
             left: 50%;
-            transform: translate(-50%, 50%);
+            transform: translateX(-50%);
         }
         
-        #btn-right { 
-            top: 50%;
+        #btn-right {
+            top: 20px;
             left: 50%;
-            transform: translate(-50%, -50%);
+            transform: translateX(-50%);
         }
         
         #gyro-btn {
@@ -109,10 +109,10 @@
     
     <button id="gyro-btn">Activar Giroscopio</button>
     
-    <div class="control-btn" id="btn-up">↑</div>
-    <div class="control-btn" id="btn-down">↓</div>
-    <div class="control-btn" id="btn-left">←</div>
-    <div class="control-btn" id="btn-right">→</div>
+    <div class="control-btn" id="btn-up" style="display: none;">↑</div>
+    <div class="control-btn" id="btn-down" style="display: none;">↓</div>
+    <div class="control-btn" id="btn-left" style="display: none;">←</div>
+    <div class="control-btn" id="btn-right" style="display: none;">→</div>
 
     <script type="module">
         import * as THREE from 'three';

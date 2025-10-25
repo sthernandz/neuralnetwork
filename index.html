@@ -330,7 +330,7 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let baseOrientation = null;
+        let initialOrientation = null;
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -352,7 +352,7 @@
 
         function startGyro() {
             gyroEnabled = true;
-            baseOrientation = null;
+            initialOrientation = null;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
@@ -362,38 +362,29 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha || 0; // Rotación Z (brújula)
-            const beta = event.beta || 0;   // Rotación X (inclinación frontal)
-            const gamma = event.gamma || 0; // Rotación Y (inclinación lateral)
+            const beta = event.beta;   // Rotación X (-180 a 180) - inclinación adelante/atrás
+            const gamma = event.gamma; // Rotación Y (-90 a 90) - inclinación izquierda/derecha
             
-            // Guardar orientación base en el primer frame
-            if (baseOrientation === null) {
-                baseOrientation = {
-                    alpha: alpha,
-                    beta: beta,
-                    gamma: gamma
-                };
+            if (beta === null || gamma === null) return;
+
+            // Guardar orientación inicial para calibración
+            if (initialOrientation === null) {
+                initialOrientation = { beta: beta, gamma: gamma };
                 return;
             }
+
+            // Calcular diferencias desde la posición inicial
+            const deltaBeta = (beta - initialOrientation.beta) * Math.PI / 180;
+            const deltaGamma = (gamma - initialOrientation.gamma) * Math.PI / 180;
             
-            // Calcular diferencias desde la orientación base
-            let deltaAlpha = alpha - baseOrientation.alpha;
-            let deltaBeta = beta - baseOrientation.beta;
-            let deltaGamma = gamma - baseOrientation.gamma;
+            // Aplicar rotaciones:
+            // - Beta controla pitch (mirar arriba/abajo) -> camera.rotation.x
+            // - Gamma controla yaw (mirar izquierda/derecha) -> camera.rotation.y
+            camera.rotation.x = -deltaBeta; // Invertido para comportamiento natural
+            camera.rotation.y = deltaGamma;
             
-            // Manejar el wraparound del alpha (0-360 grados)
-            if (deltaAlpha > 180) deltaAlpha -= 360;
-            if (deltaAlpha < -180) deltaAlpha += 360;
-            
-            // Convertir a radianes y aplicar a la cámara
-            // Alpha: DESACTIVADO - no usamos la brújula
-            // camera.rotation.y = deltaAlpha * Math.PI / 180;
-            
-            // Beta: mirar arriba/abajo (pitch) - SIN límites para permitir 360°
-            camera.rotation.x = deltaBeta * Math.PI / 180;
-            
-            // Gamma controla la rotación horizontal (reemplaza al alpha)
-            camera.rotation.y = -deltaGamma * Math.PI / 180;
+            // Limitar rotación vertical para evitar el efecto gimbal lock
+            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

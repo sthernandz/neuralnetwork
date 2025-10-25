@@ -372,9 +372,9 @@
                 const deltaGamma = gamma - (window.lastGamma || gamma);
                 const deltaBeta = beta - lastBeta;
                 
+                // Permitir giros completos en 360° sin límites
                 camera.rotation.y -= deltaGamma * 0.02;
                 camera.rotation.x += deltaBeta * 0.02;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
                 
                 window.lastGamma = gamma;
             }
@@ -392,7 +392,7 @@
             if (document.pointerLockElement === document.body) {
                 camera.rotation.y -= event.movementX * rotationSpeed;
                 camera.rotation.x -= event.movementY * rotationSpeed;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                // Sin límites, permitir giros completos en 360°
             }
         }
 

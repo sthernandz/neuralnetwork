@@ -101,6 +101,39 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
+        
+        #gyro-data {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            z-index: 200;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid rgba(0, 255, 255, 0.6);
+            border-radius: 8px;
+            color: white;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            display: none;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            min-width: 200px;
+        }
+        
+        .gyro-value {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .gyro-label {
+            color: #00ffff;
+            font-weight: bold;
+        }
+        
+        .gyro-number {
+            color: #00ff88;
+            text-align: right;
+        }
     </style>
 </head>
 <body>
@@ -330,10 +363,8 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let baseAlpha = null;
-        let baseBeta = null;
-        let baseRotationY = 0;
-        let baseRotationX = 0;
+        let lastAlpha = null;
+        let lastBeta = null;
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -355,10 +386,6 @@
 
         function startGyro() {
             gyroEnabled = true;
-            baseAlpha = null;
-            baseBeta = null;
-            baseRotationY = camera.rotation.y;
-            baseRotationX = camera.rotation.x;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
@@ -368,41 +395,22 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360) - Horizontal (brújula)
+            const alpha = event.alpha; // Rotación Z (0-360) - Horizontal
             const beta = event.beta;   // Rotación X (-180 a 180) - Vertical
+            // gamma ignorado para evitar inclinación lateral
             
-            if (alpha === null || beta === null) return;
-
-            // Establecer valores base en la primera lectura
-            if (baseAlpha === null || baseBeta === null) {
-                baseAlpha = alpha;
-                baseBeta = beta;
-                return;
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                
+                camera.rotation.y -= deltaAlpha * 0.5;
+                camera.rotation.x += deltaBeta * 0.5;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                // camera.rotation.z se mantiene en 0 para evitar inclinación lateral
             }
-
-            // Calcular diferencias en grados
-            let deltaAlpha = alpha - baseAlpha;
-            let deltaBeta = beta - baseBeta;
-
-            // Normalizar deltaAlpha para permitir transición suave en 0°/360°
-            if (deltaAlpha > 180) deltaAlpha -= 360;
-            if (deltaAlpha < -180) deltaAlpha += 360;
-
-            // Convertir a radianes
-            const radAlpha = deltaAlpha * Math.PI / 180;
-            const radBeta = deltaBeta * Math.PI / 180;
-
-            // Aplicar rotaciones (Alpha controla Y, Beta controla X)
-            // Alpha: 0°=Norte, 90°=Este, 180°=Sur, 270°=Oeste
-            camera.rotation.y = baseRotationY - radAlpha;
-
-            // Beta: 0°=Piso, 90°=Horizonte, 180°=Techo, -90°=Foto adelante
-            // Ajustamos para que 90° sea el horizonte (uso normal)
-            const adjustedBeta = radBeta + (Math.PI / 2); // Desplazamos 90° para que 90° sea 0 en la cámara
-            camera.rotation.x = baseRotationX - adjustedBeta;
-
-            // Permitir giros completos sin límites
-            // No aplicamos restricciones de ángulo para permitir loops completos
+            
+            lastAlpha = alpha;
+            lastBeta = beta;
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

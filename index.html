@@ -362,22 +362,24 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha || 0; // Rotación Z del dispositivo
-            const beta = event.beta || 0;   // Rotación X del dispositivo
-
-            // Angulos en radianes
-            const y = (alpha) * Math.PI / 180;
-            const x = (beta) * Math.PI / 180;
-
-            // Crear cuaternión desde los ángulos (YXZ)
-            const q = new THREE.Quaternion();
-            q.setFromEuler(new THREE.Euler(x, y, 0, 'YXZ'));
-            camera.quaternion.copy(q);
-
+            const alpha = event.alpha;
+            const beta = event.beta;
+            
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                
+                // Crear quaternion para la rotación delta
+                const quaternion = new THREE.Quaternion();
+                quaternion.setFromEuler(new THREE.Euler(deltaBeta, -deltaAlpha, 0, 'YXZ'));
+                
+                // Aplicar rotación a la cámara usando quaterniones
+                camera.quaternion.multiply(quaternion);
+            }
+            
             lastAlpha = alpha;
             lastBeta = beta;
         }
-
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);
 
         // --- CONTROL DE RATÓN (DESKTOP) ---

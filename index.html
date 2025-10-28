@@ -161,6 +161,7 @@
     <div id="debug-info">
         <div>Alpha: <span id="gyro-alpha">N/A</span></div>
         <div>Beta: <span id="gyro-beta">N/A</span></div>
+        <div>Gamma: <span id="gyro-gamma">N/A</span></div>
         <div>Camera X: <span id="cam-x">N/A</span></div>
         <div>Camera Y: <span id="cam-y">N/A</span></div>
     </div>
@@ -387,12 +388,31 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let lastAlpha = null;
-        let lastBeta = null;
+
+        function handleOrientation(event) {
+            if (!gyroEnabled) return;
+
+            // Obtener y convertir a radianes
+            const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0; // Z (azimut)
+            const beta  = event.beta  ? THREE.MathUtils.degToRad(event.beta)  : 0; // X (inclinación)
+            const gamma = event.gamma ? THREE.MathUtils.degToRad(event.gamma) : 0; // Y (giro lateral)
+
+            // Crear Euler y actualizar cámara
+            // Orden estándar para móviles es 'YXZ'
+            const euler = new THREE.Euler();
+            euler.set(beta, alpha, -gamma, 'YXZ');
+            camera.quaternion.setFromEuler(euler);
+
+            // Actualizar debug info
+            document.getElementById('gyro-alpha').textContent = event.alpha !== null ? event.alpha.toFixed(2) : 'N/A';
+            document.getElementById('gyro-beta').textContent = event.beta  !== null ? event.beta.toFixed(2)  : 'N/A';
+            document.getElementById('gyro-gamma').textContent = event.gamma !== null ? event.gamma.toFixed(2) : 'N/A';
+        }
+
+        document.getElementById('gyro-btn').addEventListener('click', enableGyro);
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requiere permiso
                 try {
                     const permission = await DeviceOrientationEvent.requestPermission();
                     if (permission === 'granted') {
@@ -403,7 +423,6 @@
                     alert('No se pudo activar el giroscopio');
                 }
             } else {
-                // Android y otros navegadores
                 startGyro();
             }
         }
@@ -412,34 +431,8 @@
             gyroEnabled = true;
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
-            
             window.addEventListener('deviceorientation', handleOrientation);
         }
-
-        function handleOrientation(event) {
-            if (!gyroEnabled) return;
-
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y += deltaAlpha;
-                camera.rotation.x += deltaBeta;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-            }
-            
-            lastAlpha = alpha;
-            lastBeta = beta;
-
-            // Actualizar display de depuración
-            document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';
-            document.getElementById('gyro-beta').textContent = beta !== null ? beta.toFixed(2) : 'N/A';
-        }
-
-        document.getElementById('gyro-btn').addEventListener('click', enableGyro);
 
         // --- CONTROL DE RATÓN (DESKTOP) ---
         document.addEventListener('mousemove', onDocumentMouseMove);

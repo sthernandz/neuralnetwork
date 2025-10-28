@@ -101,38 +101,6 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
-        #crosshair {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            width: 32px;
-            height: 32px;
-            z-index: 5000;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-        }
-        #crosshair:before, #crosshair:after {
-            content: '';
-            position: absolute;
-            background: #00ffff;
-            border-radius: 2px;
-        }
-        #crosshair:before {
-            left: 50%;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            transform: translateX(-50%);
-            box-shadow: 0 0 8px 2px #00ffff80;
-        }
-        #crosshair:after {
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            transform: translateY(-50%);
-            box-shadow: 0 0 8px 2px #00ffff80;
-        }
     </style>
 </head>
 <body>
@@ -394,20 +362,20 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            // Obtener ángulos del dispositivo
-            const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0; // Z - compás
-            const beta  = event.beta  ? THREE.MathUtils.degToRad(event.beta)  : 0; // X - inclinación frontal
-            const gamma = event.gamma ? THREE.MathUtils.degToRad(event.gamma) : 0; // Y - inclinación lateral
+            const alpha = event.alpha || 0; // Rotación Z del dispositivo
+            const beta = event.beta || 0;   // Rotación X del dispositivo
 
-            // Según la documentación de Three.js para dispositivos móviles:
-            let euler = new THREE.Euler();
-            // euler.set(beta, alpha, -gamma, 'YXZ');
-            euler.set(beta, alpha, -gamma, 'YXZ');
+            // Angulos en radianes
+            const y = (alpha) * Math.PI / 180;
+            const x = (beta) * Math.PI / 180;
 
-            camera.quaternion.setFromEuler(euler);
+            // Crear cuaternión desde los ángulos (YXZ)
+            const q = new THREE.Quaternion();
+            q.setFromEuler(new THREE.Euler(x, y, 0, 'YXZ'));
+            camera.quaternion.copy(q);
 
-            lastAlpha = event.alpha;
-            lastBeta = event.beta;
+            lastAlpha = alpha;
+            lastBeta = beta;
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);
@@ -477,6 +445,5 @@
 
         animate();
     </script>
-    <div id="crosshair"></div>
 </body>
 </html>

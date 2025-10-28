@@ -331,10 +331,6 @@
             document.getElementById('gyro-btn').style.display = 'block';
         }
 
-        // ---- Variables para control FPS compatible espacial ----
-        let accumulatedYaw = 0; // rotación horizontal
-        let accumulatedPitch = 0; // rotación vertical
-
         // --- CONTROLES DE TECLADO ---
         document.addEventListener('keydown', (e) => keyboard[e.key.toLowerCase()] = true);
         document.addEventListener('keyup', (e) => keyboard[e.key.toLowerCase()] = false);
@@ -398,26 +394,20 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha || 0; // Rotación Z del dispositivo
-            const beta = event.beta || 0;   // Rotación X del dispositivo
+            // Obtener ángulos del dispositivo
+            const alpha = event.alpha ? THREE.MathUtils.degToRad(event.alpha) : 0; // Z - compás
+            const beta  = event.beta  ? THREE.MathUtils.degToRad(event.beta)  : 0; // X - inclinación frontal
+            const gamma = event.gamma ? THREE.MathUtils.degToRad(event.gamma) : 0; // Y - inclinación lateral
 
-            if (lastAlpha !== null && lastBeta !== null) {
-                // Cálculo diferencial para yaw y pitch
-                let deltaYaw = (alpha - lastAlpha) * Math.PI / 180;
-                let deltaPitch = (beta - lastBeta) * Math.PI / 180;
+            // Según la documentación de Three.js para dispositivos móviles:
+            let euler = new THREE.Euler();
+            // euler.set(beta, alpha, -gamma, 'YXZ');
+            euler.set(beta, alpha, -gamma, 'YXZ');
 
-                accumulatedYaw -= deltaYaw; // signo según convención THREE (YAW, eje Y)
-                accumulatedPitch += deltaPitch;
-                // Limita la inclinación vertical entre -90° y 90°
-                accumulatedPitch = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, accumulatedPitch));
-            }
-
-            // Aplica la rotación espacialmente
-            const euler = new THREE.Euler(accumulatedPitch, accumulatedYaw, 0, 'YXZ');
             camera.quaternion.setFromEuler(euler);
 
-            lastAlpha = alpha;
-            lastBeta = beta;
+            lastAlpha = event.alpha;
+            lastBeta = event.beta;
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

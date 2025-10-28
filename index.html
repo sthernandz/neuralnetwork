@@ -101,38 +101,6 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
-        #crosshair {
-            position: fixed;
-            left: 50%;
-            top: 50%;
-            width: 32px;
-            height: 32px;
-            z-index: 5000;
-            pointer-events: none;
-            transform: translate(-50%, -50%);
-        }
-        #crosshair:before, #crosshair:after {
-            content: '';
-            position: absolute;
-            background: #00ffff;
-            border-radius: 2px;
-        }
-        #crosshair:before {
-            left: 50%;
-            top: 0;
-            width: 4px;
-            height: 100%;
-            transform: translateX(-50%);
-            box-shadow: 0 0 8px 2px #00ffff80;
-        }
-        #crosshair:after {
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            transform: translateY(-50%);
-            box-shadow: 0 0 8px 2px #00ffff80;
-        }
     </style>
 </head>
 <body>
@@ -155,6 +123,7 @@
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { DeviceOrientationControls } from 'three/addons/controls/DeviceOrientationControls.js';
 
         // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
         const NETWORK_RADIUS = 600;
@@ -228,6 +197,9 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.toneMapping = THREE.ReinhardToneMapping;
         document.body.appendChild(renderer.domElement);
+
+        // Controles de orientación de dispositivo
+        let controls; // Declarar aquí para que sea accesible en otras funciones
 
         // --- POST-PROCESSING PARA EL EFECTO GLOW (BLOOM) ---
         const composer = new EffectComposer(renderer);
@@ -361,7 +333,7 @@
         setupTouchControl('btn-right', 'right');
 
         // --- GIROSCOPIO ---
-        let gyroEnabled = false;
+        // let gyroEnabled = false; // Ya no se necesita esta bandera
         let lastAlpha = null;
         let lastBeta = null;
 
@@ -384,31 +356,33 @@
         }
 
         function startGyro() {
-            gyroEnabled = true;
+            if (!controls) {
+                controls = new DeviceOrientationControls(camera);
+                controls.connect();
+                controls.update(); // Actualizar una vez para establecer la orientación inicial
+            }
+            // gyroEnabled = true; // Ya no se necesita esta bandera
             document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
             document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             
-            window.addEventListener('deviceorientation', handleOrientation);
+            // window.addEventListener('deviceorientation', handleOrientation); // DeviceOrientationControls lo gestiona
         }
 
-        function handleOrientation(event) {
-            if (!gyroEnabled) return;
-
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y -= deltaAlpha; //* 0.5;
-                camera.rotation.x -= deltaBeta; //* 0.5;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-            }
-            
-            lastAlpha = alpha;
-            lastBeta = beta;
-        }
+        // La función handleOrientation ya no es necesaria con DeviceOrientationControls
+        // function handleOrientation(event) {
+        //     if (!gyroEnabled) return;
+        //     const alpha = event.alpha; // Rotación Z (0-360)
+        //     const beta = event.beta;   // Rotación X (-180 a 180)
+        //     if (lastAlpha !== null && lastBeta !== null) {
+        //         const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+        //         const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+        //         camera.rotation.y -= deltaAlpha; //* 0.5;
+        //         camera.rotation.x += deltaBeta; //* 0.5;
+        //         camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+        //     }
+        //     lastAlpha = alpha;
+        //     lastBeta = beta;
+        // }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);
 
@@ -449,6 +423,9 @@
         function animate() {
             requestAnimationFrame(animate);
             updatePlayer();
+            if (controls && controls.enabled) {
+                controls.update(); // Actualizar los controles de orientación del dispositivo
+            }
             pointLight.position.copy(camera.position);
 
             nodeObjects.forEach(node => {
@@ -477,6 +454,5 @@
 
         animate();
     </script>
-    <div id="crosshair"></div>
 </body>
 </html>

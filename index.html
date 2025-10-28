@@ -101,6 +101,38 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
+        #crosshair {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: 32px;
+            height: 32px;
+            z-index: 5000;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        #crosshair:before, #crosshair:after {
+            content: '';
+            position: absolute;
+            background: #00ffff;
+            border-radius: 2px;
+        }
+        #crosshair:before {
+            left: 50%;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px 2px #00ffff80;
+        }
+        #crosshair:after {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            transform: translateY(-50%);
+            box-shadow: 0 0 8px 2px #00ffff80;
+        }
     </style>
 </head>
 <body>
@@ -445,5 +477,6 @@
 
         animate();
     </script>
+    <div id="crosshair"></div>
 </body>
 </html>

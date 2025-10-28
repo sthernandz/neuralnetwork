@@ -394,18 +394,18 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y -= deltaAlpha; //* 0.5;
-                camera.rotation.x -= deltaBeta; //* 0.5;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-            }
-            
+            const alpha = event.alpha || 0; // Rotación Z del dispositivo
+            const beta = event.beta || 0;   // Rotación X del dispositivo
+
+            // Angulos en radianes
+            const y = (alpha) * Math.PI / 180;
+            const x = (beta) * Math.PI / 180;
+
+            // Crear cuaternión desde los ángulos (YXZ)
+            const q = new THREE.Quaternion();
+            q.setFromEuler(new THREE.Euler(x, y, 0, 'YXZ'));
+            camera.quaternion.copy(q);
+
             lastAlpha = alpha;
             lastBeta = beta;
         }

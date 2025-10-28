@@ -369,9 +369,9 @@
                 const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
                 const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                 
-                camera.rotation.y -= deltaAlpha * 0.5;
-                camera.rotation.x += deltaBeta * 0.5;
-                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                camera.rotation.y -= deltaAlpha; //* 0.5;
+                camera.rotation.x += deltaBeta; //* 0.5;
+                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
             }
             
             lastAlpha = alpha;
@@ -392,17 +392,25 @@
         }
 
         function updatePlayer() {
-            // Controles de teclado
-            if (keyboard['w'] || keyboard['arrowup']) camera.translateZ(-playerSpeed);
-            if (keyboard['s'] || keyboard['arrowdown']) camera.translateZ(playerSpeed);
-            if (keyboard['a'] || keyboard['arrowleft']) camera.translateX(-playerSpeed);
-            if (keyboard['d'] || keyboard['arrowright']) camera.translateX(playerSpeed);
+            // Crear vector de dirección basado en la rotación de la cámara
+            const direction = new THREE.Vector3(0, 0, -1);
+            direction.applyQuaternion(camera.quaternion);
             
-            // Controles táctiles
-            if (touchControls.up) camera.translateZ(-playerSpeed);
-            if (touchControls.down) camera.translateZ(playerSpeed);
-            if (touchControls.left) camera.translateX(-playerSpeed);
-            if (touchControls.right) camera.translateX(playerSpeed);
+            // Controles de teclado - mover en la dirección de la cámara
+            if (keyboard['w'] || keyboard['arrowup']) camera.position.addScaledVector(direction, playerSpeed);
+            if (keyboard['s'] || keyboard['arrowdown']) camera.position.addScaledVector(direction, -playerSpeed);
+            
+            // Movimiento lateral (strafe) perpendicular a la dirección
+            const right = new THREE.Vector3(1, 0, 0);
+            right.applyQuaternion(camera.quaternion);
+            if (keyboard['a'] || keyboard['arrowleft']) camera.position.addScaledVector(right, -playerSpeed);
+            if (keyboard['d'] || keyboard['arrowright']) camera.position.addScaledVector(right, playerSpeed);
+            
+            // Controles táctiles (similar para consistencia)
+            if (touchControls.up) camera.position.addScaledVector(direction, playerSpeed);
+            if (touchControls.down) camera.position.addScaledVector(direction, -playerSpeed);
+            if (touchControls.left) camera.position.addScaledVector(right, -playerSpeed);
+            if (touchControls.right) camera.position.addScaledVector(right, playerSpeed);
         }
         
         // --- LOOP DE ANIMACIÓN ---

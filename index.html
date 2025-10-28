@@ -428,7 +428,11 @@
                 
                 camera.rotation.y += deltaAlpha;
                 camera.rotation.x += deltaBeta;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                // Línea actual:
+// camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+
+// Nueva línea para limitar a 80 grados:
+                camera.rotation.x = Math.max(- (4 * Math.PI / 9), Math.min((4 * Math.PI / 9), camera.rotation.x));
             }
             
             lastAlpha = alpha;

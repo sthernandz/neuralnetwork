@@ -101,12 +101,69 @@
         #gyro-btn:active {
             background: rgba(170, 0, 255, 0.8);
         }
+
+        #debug-info {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        #debug-info div {
+            margin-bottom: 5px;
+        }
+        #crosshair {
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            width: 32px;
+            height: 32px;
+            z-index: 5000;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+        }
+        #crosshair:before, #crosshair:after {
+            content: '';
+            position: absolute;
+            background: #00ffff;
+            border-radius: 2px;
+        }
+        #crosshair:before {
+            left: 50%;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 8px 2px #00ffff80;
+        }
+        #crosshair:after {
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            transform: translateY(-50%);
+            box-shadow: 0 0 8px 2px #00ffff80;
+        }
     </style>
 </head>
 <body>
     <div id="info">Mapa Conceptual de SVM</div>
     
     <button id="gyro-btn">Activar Giroscopio</button>
+
+    <div id="debug-info">
+        <div>Alpha: <span id="gyro-alpha">N/A</span></div>
+        <div>Beta: <span id="gyro-beta">N/A</span></div>
+        <div>Camera X: <span id="cam-x">N/A</span></div>
+        <div>Camera Y: <span id="cam-y">N/A</span></div>
+    </div>
     
     <div id="mobile-controls">
         <div class="control-pad">
@@ -369,13 +426,17 @@
                 const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
                 const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                 
-                camera.rotation.y -= deltaAlpha; //* 0.5;
-                camera.rotation.x -= deltaBeta; //* 0.5;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+                camera.rotation.y -= deltaAlpha * 0.5;
+                camera.rotation.x += deltaBeta * 0.5;
+                camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
             }
             
             lastAlpha = alpha;
             lastBeta = beta;
+
+            // Actualizar display de depuración
+            document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';
+            document.getElementById('gyro-beta').textContent = beta !== null ? beta.toFixed(2) : 'N/A';
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);
@@ -426,6 +487,10 @@
                 }
             });
 
+            // Actualizar display de depuración para la cámara
+            document.getElementById('cam-x').textContent = (camera.rotation.x * 180 / Math.PI).toFixed(2);
+            document.getElementById('cam-y').textContent = (camera.rotation.y * 180 / Math.PI).toFixed(2);
+
             composer.render();
         }
 
@@ -445,5 +510,6 @@
 
         animate();
     </script>
+    <div id="crosshair"></div>
 </body>
 </html>

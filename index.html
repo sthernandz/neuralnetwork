@@ -180,6 +180,7 @@
         import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
         import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+        import { DeviceOrientationControls } from 'three/addons/controls/DeviceOrientationControls.js';
 
         // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
         const NETWORK_RADIUS = 600;
@@ -267,6 +268,11 @@
         scene.add(ambientLight);
         const pointLight = new THREE.PointLight(0xffffff, 1, 2000);
         scene.add(pointLight);
+
+        // --- CONTROLES DE ORIENTACIÓN DEL DISPOSITIVO ---
+        const controls = new DeviceOrientationControls(camera);
+        controls.connect();
+        controls.enabled = false; // Desactivado por defecto
 
         // --- FUNCIÓN PARA CREAR TEXTO (SPRITES) ---
         function makeTextSprite(message, opts) {
@@ -387,56 +393,36 @@
 
         // --- GIROSCOPIO ---
         let gyroEnabled = false;
-        let lastAlpha = null;
-        let lastBeta = null;
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                // iOS 13+ requiere permiso
                 try {
                     const permission = await DeviceOrientationEvent.requestPermission();
                     if (permission === 'granted') {
-                        startGyro();
+                        controls.enabled = true;
+                        gyroEnabled = true;
+                        document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
+                        document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
+                    } else {
+                        // Si el permiso es denegado, asegúrate de que los controles no estén habilitados
+                        controls.enabled = false;
+                        gyroEnabled = false;
+                        document.getElementById('gyro-btn').textContent = 'Activar Giroscopio';
+                        document.getElementById('gyro-btn').style.background = 'rgba(170, 0, 255, 0.5)';
                     }
                 } catch (error) {
                     console.error('Error al solicitar permiso:', error);
                     alert('No se pudo activar el giroscopio');
+                    controls.enabled = false;
+                    gyroEnabled = false;
                 }
             } else {
                 // Android y otros navegadores
-                startGyro();
+                controls.enabled = true;
+                gyroEnabled = true;
+                document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
+                document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
             }
-        }
-
-        function startGyro() {
-            gyroEnabled = true;
-            document.getElementById('gyro-btn').textContent = 'Giroscopio Activo';
-            document.getElementById('gyro-btn').style.background = 'rgba(0, 255, 136, 0.5)';
-            
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-
-        function handleOrientation(event) {
-            if (!gyroEnabled) return;
-
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y += deltaAlpha;
-                camera.rotation.x += deltaBeta;
-                // camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
-            }
-            
-            lastAlpha = alpha;
-            lastBeta = beta;
-
-            // Actualizar display de depuración
-            document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';
-            document.getElementById('gyro-beta').textContent = beta !== null ? beta.toFixed(2) : 'N/A';
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);
@@ -477,6 +463,17 @@
         // --- LOOP DE ANIMACIÓN ---
         function animate() {
             requestAnimationFrame(animate);
+            
+            if (gyroEnabled) {
+                controls.update(); // Actualiza los controles del giroscopio
+
+                // Actualizar display de depuración para alpha y beta (pueden no ser directos desde controls)
+                // Por simplicidad, se puede dejar en 'N/A' o intentar derivarlos de camera.rotation si es necesario.
+                // Aquí, los dejaremos en 'N/A' si no están directamente disponibles.
+                document.getElementById('gyro-alpha').textContent = "N/A"; // Los controles manejan esto internamente
+                document.getElementById('gyro-beta').textContent = "N/A"; // Los controles manejan esto internamente
+            }
+
             updatePlayer();
             pointLight.position.copy(camera.position);
 

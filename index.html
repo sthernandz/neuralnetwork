@@ -161,7 +161,6 @@
     <div id="debug-info">
         <div>Alpha: <span id="gyro-alpha">N/A</span></div>
         <div>Beta: <span id="gyro-beta">N/A</span></div>
-        <div>Gamma: <span id="gyro-gamma">N/A</span></div>
         <div>Camera X: <span id="cam-x">N/A</span></div>
         <div>Camera Y: <span id="cam-y">N/A</span></div>
     </div>
@@ -420,31 +419,24 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            // Usamos gamma (rotación lateral) y beta (inclinación vertical)
-            let gamma = event.gamma; // izquierda/derecha (-90 a 90)
-            let beta = event.beta;   // arriba/abajo (-180 a 180)
-
-            if (gamma === null || beta === null) return;
-
-            // Evitar el rango problemático de beta cerca de ±90°
-            // Limitamos beta a [-85, 85] para evitar inestabilidad
-            beta = Math.max(-85, Math.min(85, beta));
-
-            // Convertir a radianes
-            const yaw = gamma * Math.PI / 180;   // rotación Y (horizontal)
-            const pitch = beta * Math.PI / 180;  // rotación X (vertical)
-
-            // Aplicar directamente a la cámara (sin usar diferencias ni alpha)
-            camera.rotation.y = -yaw;
-            camera.rotation.x = pitch;
-
-            // Clampear pitch para evitar flip
-            camera.rotation.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, camera.rotation.x));
+            const alpha = event.alpha; // Rotación Z (0-360)
+            const beta = event.beta;   // Rotación X (-180 a 180)
+            
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+                
+                camera.rotation.y -= deltaAlpha; //* 0.5;
+                camera.rotation.x += deltaBeta; //* 0.5;
+                camera.rotation.x = Math.max(-80 * Math.PI / 180, Math.min(80 * Math.PI / 180, camera.rotation.x));
+            }
+            
+            lastAlpha = alpha;
+            lastBeta = beta;
 
             // Actualizar display de depuración
-            document.getElementById('gyro-alpha').textContent = 'Ignorado';
-            document.getElementById('gyro-beta').textContent = beta.toFixed(2);
-            document.getElementById('gyro-gamma').textContent = gamma !== null ? gamma.toFixed(2) : 'N/A';
+            document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';
+            document.getElementById('gyro-beta').textContent = beta !== null ? beta.toFixed(2) : 'N/A';
         }
 
         document.getElementById('gyro-btn').addEventListener('click', enableGyro);

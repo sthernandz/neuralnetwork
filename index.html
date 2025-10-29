@@ -465,9 +465,8 @@
                 const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
                 const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                 
-                camera.rotation.y -= deltaAlpha; //* 0.5;
+                camera.rotation.y += deltaAlpha; //* 0.5;
                 camera.rotation.x += deltaBeta; //* 0.5;
-                camera.rotation.x = Math.max(-80 * Math.PI / 180, Math.min(80 * Math.PI / 180, camera.rotation.x));
             }
             
             lastAlpha = alpha;

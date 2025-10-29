@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mapa Conceptual de Liderazgo</title>
+    <title>Mapa Conceptual de SVM en 3D</title>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -154,7 +154,7 @@
     </style>
 </head>
 <body>
-    <div id="info">Mapa Conceptual de Liderazgo</div>
+    <div id="info">Mapa Conceptual de SVM</div>
     
     <button id="gyro-btn">Activar Giroscopio</button>
 
@@ -182,105 +182,66 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
         // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
-        const NETWORK_RADIUS = 800; // Aumentado para dar más espacio al grafo
+        const NETWORK_RADIUS = 600;
 
         const concepts = [
-            { id: 'liderazgo', name: 'Liderazgo', category: 'root' },
-            { id: 'enfoque_conductual', name: 'Enfoque Conductual', category: 'approach' },
-            { id: 'ohio_state', name: 'Ohaio State University', category: 'study' },
-            { id: 'iniciacion_estructura', name: 'Iniciación de Estructura', category: 'concept' },
-            { id: 'consideracion', name: 'Consideración', category: 'concept' },
-            { id: 'liderazgo_efectivo', name: 'Liderazgo Efectivo', category: 'concept' },
-            { id: 'orientacion_empleado', name: 'Orientación al Empleado', category: 'concept' },
-            { id: 'orientacion_produccion', name: 'Orientación a la Producción', category: 'concept' },
-            { id: 'enfoque_situacional', name: 'Enfoque Situacional', category: 'approach' },
-            { id: 'contexto', name: 'Contexto Situacional', category: 'concept' },
-            { id: 'hersey_blanchard', name: 'Teoría de Hersey y Blanchard', category: 'theory' },
-            { id: 'nivel_desarrollo', name: 'Nivel de Desarrollo (Seguidores)', category: 'concept' },
-            { id: 'delegar', name: 'Estilo: Delegar', category: 'style' },
-            { id: 'entrenar', name: 'Estilo: Entrenar', category: 'style' },
-            { id: 'dirigir', name: 'Estilo: Dirigir', category: 'style' },
-            { id: 'apoyar', name: 'Estilo: Apoyar', category: 'style' },
-            { id: 'contingencia', name: 'Teoría de la Contingencia', category: 'theory' },
-            { id: 'relacion_lider_seguidor', name: 'Relación Líder-Seguidor', category: 'concept' },
-            { id: 'estructura_tarea', name: 'Estructura de la Tarea', category: 'concept' },
-            { id: 'poder_lider', name: 'Poder del Líder', category: 'concept' },
-            { id: 'lpc', name: 'Trabajador Menos Preferido (LPC)', category: 'concept' },
-            { id: 'camino_meta', name: 'Teoría del Camino-Meta', category: 'theory' },
-            { id: 'motivacion', name: 'Motivación (Empleado)', category: 'concept' },
-            { id: 'lider_directivo', name: 'Liderazgo Directivo (Camino-Meta)', category: 'style' },
-            { id: 'lider_considerado', name: 'Liderazgo Considerado (Camino-Meta)', category: 'style' },
-            { id: 'lider_participativo', name: 'Liderazgo Participativo (Camino-Meta)', category: 'style' },
-            { id: 'lider_metas', name: 'Liderazgo Orientado a Metas (Camino-Meta)', category: 'style' },
-            { id: 'lmx', name: 'Teoría LMX', category: 'theory' },
-            { id: 'endogrupo', name: 'Endogrupo', category: 'concept' },
-            { id: 'exogrupo', name: 'Exogrupo', category: 'concept' },
-            { id: 'adaptar_estilo', name: 'Adaptar Estilo', category: 'concept' }
+            { id: 'svm', name: 'Support Vector Machine (SVM)', category: 'algorithm' },
+            { id: 'supervised', name: 'Aprendizaje Supervisado', category: 'problem_type' },
+            { id: 'classification', name: 'Clasificación', category: 'problem_type' },
+            { id: 'regression', name: 'Regresión', category: 'problem_type' },
+            { id: 'hyperplane', name: 'Hiperplano', category: 'fundamental' },
+            { id: 'margin', name: 'Margen', category: 'fundamental' },
+            { id: 'support_vectors', name: 'Vectores de Soporte', category: 'fundamental' },
+            { id: 'linear_classification', name: 'Clasificación Lineal', category: 'technique' },
+            { id: 'nonlinear_classification', name: 'Clasificación No Lineal', category: 'technique' },
+            { id: 'hard_margin', name: 'Clasificación "Hard Margin"', category: 'technique' },
+            { id: 'soft_margin', name: 'Clasificación "Soft Margin"', category: 'technique' },
+            { id: 'kernel_trick', name: 'Truco Kernel', category: 'technique' },
+            { id: 'kernel_functions', name: 'Funciones Kernel', category: 'implementation' },
+            { id: 'poly_kernel', name: 'Kernel Polinomial', category: 'implementation' },
+            { id: 'rbf_kernel', name: 'Kernel RBF Gaussiano', category: 'implementation' },
+            { id: 'sigmoid_kernel', name: 'Kernel Sigmoideo', category: 'implementation' },
+            { id: 'scikit_learn', name: 'Scikit-Learn', category: 'implementation' },
+            { id: 'outliers', name: 'Outliers', category: 'challenge' },
+            { id: 'param_c', name: 'Parámetro C (Regularización)', category: 'challenge' },
+            { id: 'overfitting', name: 'Overfitting', category: 'challenge' },
+            { id: 'param_epsilon', name: 'Parámetro Épsilon (ε)', category: 'challenge' },
+            { id: 'param_degree', name: 'Grado (d)', category: 'challenge' }
         ];
 
         const relationships = [
-            { source: 'liderazgo', target: 'enfoque_conductual', label: 'incluye' },
-            { source: 'liderazgo', target: 'enfoque_situacional', label: 'incluye' },
-            { source: 'liderazgo', target: 'liderazgo_efectivo', label: 'busca' },
-            
-            // Enfoque Conductual
-            { source: 'enfoque_conductual', target: 'ohio_state', label: 'estudiado por' },
-            { source: 'ohio_state', target: 'iniciacion_estructura', label: 'define' },
-            { source: 'ohio_state', target: 'consideracion', label: 'define' },
-            { source: 'liderazgo_efectivo', target: 'iniciacion_estructura', label: 'requiere' },
-            { source: 'liderazgo_efectivo', target: 'consideracion', label: 'requiere' },
-            { source: 'enfoque_conductual', target: 'orientacion_empleado', label: 'identifica' },
-            { source: 'enfoque_conductual', target: 'orientacion_produccion', label: 'identifica' },
-
-            // Enfoque Situacional
-            { source: 'enfoque_situacional', target: 'contexto', label: 'enfatiza' },
-            { source: 'enfoque_situacional', target: 'adaptar_estilo', label: 'requiere' },
-            { source: 'adaptar_estilo', target: 'contexto', label: 'según el' },
-            { source: 'enfoque_situacional', target: 'hersey_blanchard', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'contingencia', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'camino_meta', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'lmx', label: 'incluye' },
-
-            // Hersey & Blanchard
-            { source: 'hersey_blanchard', target: 'nivel_desarrollo', label: 'se basa en' },
-            { source: 'hersey_blanchard', target: 'delegar', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'entrenar', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'dirigir', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'apoyar', label: 'define estilo' },
-            { source: 'nivel_desarrollo', target: 'dirigir', label: 'bajo, requiere' },
-            { source: 'nivel_desarrollo', target: 'entrenar', label: 'bajo-moderado, requiere' },
-            { source: 'nivel_desarrollo', target: 'apoyar', label: 'moderado-alto, requiere' },
-            { source: 'nivel_desarrollo', target: 'delegar', label: 'alto, requiere' },
-
-            // Contingencia
-            { source: 'contingencia', target: 'relacion_lider_seguidor', label: 'depende de' },
-            { source: 'contingencia', target: 'estructura_tarea', label: 'depende de' },
-            { source: 'contingencia', target: 'poder_lider', label: 'depende de' },
-            { source: 'contingencia', target: 'lpc', label: 'usa' },
-            { source: 'lpc', target: 'orientacion_empleado', label: 'mide' },
-            { source: 'lpc', target: 'orientacion_produccion', label: 'mide' },
-            
-            // Camino-Meta
-            { source: 'camino_meta', target: 'motivacion', label: 'enfocado en' },
-            { source: 'motivacion', target: 'camino_meta', label: 'líder remueve obstáculos para' },
-            { source: 'camino_meta', target: 'lider_directivo', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_considerado', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_participativo', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_metas', label: 'define estilo' },
-
-            // LMX
-            { source: 'lmx', target: 'relacion_lider_seguidor', label: 'se enfoca en' },
-            { source: 'lmx', target: 'endogrupo', label: 'crea' },
-            { source: 'lmx', target: 'exogrupo', label: 'crea' }
+            { source: 'svm', target: 'supervised', label: 'es un tipo de' },
+            { source: 'svm', target: 'classification', label: 'se aplica a' },
+            { source: 'svm', target: 'regression', label: 'se aplica a' },
+            { source: 'classification', target: 'linear_classification', label: 'puede ser' },
+            { source: 'classification', target: 'nonlinear_classification', label: 'puede ser' },
+            { source: 'linear_classification', target: 'hyperplane', label: 'busca un' },
+            { source: 'hyperplane', target: 'margin', label: 'que maximiza el' },
+            { source: 'margin', target: 'support_vectors', label: 'definido por los' },
+            { source: 'linear_classification', target: 'hard_margin', label: 'variante' },
+            { source: 'linear_classification', target: 'soft_margin', label: 'variante' },
+            { source: 'hard_margin', target: 'outliers', label: 'es sensible a' },
+            { source: 'soft_margin', target: 'param_c', label: 'controlado por' },
+            { source: 'param_c', target: 'overfitting', label: 'un valor alto causa' },
+            { source: 'nonlinear_classification', target: 'kernel_trick', label: 'usa el' },
+            { source: 'kernel_trick', target: 'kernel_functions', label: 'se implementa con' },
+            { source: 'kernel_functions', target: 'poly_kernel', label: 'tipo' },
+            { source: 'kernel_functions', target: 'rbf_kernel', label: 'tipo' },
+            { source: 'kernel_functions', target: 'sigmoid_kernel', label: 'tipo' },
+            { source: 'poly_kernel', target: 'param_degree', label: 'controlado por' },
+            { source: 'param_degree', target: 'overfitting', label: 'un grado alto causa' },
+            { source: 'regression', target: 'margin', label: 'busca ajustar en el' },
+            { source: 'regression', target: 'param_epsilon', label: 'controlado por' },
+            { source: 'svm', target: 'scikit_learn', label: 'se implementa en' }
         ];
 
         const categoryColors = {
-            root: new THREE.Color(0xff0044), // Rojo
-            approach: new THREE.Color(0x0088ff), // Azul
-            theory: new THREE.Color(0x00ff88), // Verde
-            concept: new THREE.Color(0xff8800), // Naranja
-            style: new THREE.Color(0xaa00ff), // Púrpura
-            study: new THREE.Color(0xcccccc) // Gris
+            algorithm: new THREE.Color(0x0088ff),
+            problem_type: new THREE.Color(0x00ff88),
+            fundamental: new THREE.Color(0xff8800),
+            technique: new THREE.Color(0xaa00ff),
+            implementation: new THREE.Color(0xcccccc),
+            challenge: new THREE.Color(0xff0044)
         };
 
         // --- INICIALIZACIÓN DE LA ESCENA 3D ---
@@ -458,17 +419,39 @@
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360)
-            const beta = event.beta;   // Rotación X (-180 a 180)
-            
-            if (lastAlpha !== null && lastBeta !== null) {
-                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                
-                camera.rotation.y += deltaAlpha; //* 0.5;
-                camera.rotation.x += deltaBeta; //* 0.5;
+            let alpha = event.alpha; // 0 - 360
+            const beta = event.beta;   // -180 a 180
+
+            // Normalizar alpha a [-180, 180] para facilitar cálculos
+            if (alpha !== null) {
+                alpha = alpha > 180 ? alpha - 360 : alpha;
             }
-            
+
+            // Evitar usar alpha cuando beta está cerca de ±90° (zona de inestabilidad)
+            const useAlpha = beta !== null && Math.abs(beta) < 80;
+
+            if (lastAlpha !== null && lastBeta !== null && alpha !== null && beta !== null) {
+                let deltaAlpha = 0;
+                if (useAlpha) {
+                    deltaAlpha = alpha - lastAlpha;
+                    // Manejar salto de 180 ↔ -180
+                    if (deltaAlpha > 180) deltaAlpha -= 360;
+                    if (deltaAlpha < -180) deltaAlpha += 360;
+                    deltaAlpha *= Math.PI / 180;
+                }
+
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
+
+                // Aplicar rotaciones
+                if (useAlpha) {
+                    camera.rotation.y -= deltaAlpha;
+                }
+                camera.rotation.x += deltaBeta;
+
+                // Limitar pitch para evitar flip
+                camera.rotation.x = Math.max(-Math.PI / 2 + 0.01, Math.min(Math.PI / 2 - 0.01, camera.rotation.x));
+            }
+
             lastAlpha = alpha;
             lastBeta = beta;
 

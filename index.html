@@ -182,12 +182,12 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
         // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
-        const NETWORK_RADIUS = 800;
+        const NETWORK_RADIUS = 800; // Aumentado para dar más espacio al grafo
 
         const concepts = [
             { id: 'liderazgo', name: 'Liderazgo', category: 'root' },
             { id: 'enfoque_conductual', name: 'Enfoque Conductual', category: 'approach' },
-            { id: 'ohio_state', name: 'Ohio State University', category: 'study' }, // Fixed typo
+            { id: 'ohio_state', name: 'Ohaio State University', category: 'study' },
             { id: 'iniciacion_estructura', name: 'Iniciación de Estructura', category: 'concept' },
             { id: 'consideracion', name: 'Consideración', category: 'concept' },
             { id: 'liderazgo_efectivo', name: 'Liderazgo Efectivo', category: 'concept' },
@@ -436,19 +436,14 @@
                     const permission = await DeviceOrientationEvent.requestPermission();
                     if (permission === 'granted') {
                         startGyro();
-                    } else {
-                        console.log('Permiso para giroscopio denegado');
                     }
                 } catch (error) {
                     console.error('Error al solicitar permiso:', error);
                     alert('No se pudo activar el giroscopio');
                 }
-            } else if (typeof DeviceOrientationEvent !== 'undefined') {
+            } else {
                 // Android y otros navegadores
                 startGyro();
-            } else {
-                console.log('Giroscopio no soportado');
-                alert('Giroscopio no soportado en este dispositivo');
             }
         }
 
@@ -466,23 +461,16 @@
             const alpha = event.alpha; // Rotación Z (0-360)
             const beta = event.beta;   // Rotación X (-180 a 180)
             
-            if (alpha !== null && beta !== null) {
-                // Acumular cambios para rotación suave
-                if (lastAlpha !== null && lastBeta !== null) {
-                    const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
-                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
-                    
-                    // Limitar beta para evitar inversión
-                    const newBeta = camera.rotation.x - deltaBeta;
-                    if (newBeta > -Math.PI/2 && newBeta < Math.PI/2) {
-                        camera.rotation.x = newBeta;
-                    }
-                    camera.rotation.y -= deltaAlpha;
-                }
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                 
-                lastAlpha = alpha;
-                lastBeta = beta;
+                camera.rotation.y += deltaAlpha; //* 0.5;
+                camera.rotation.x += deltaBeta; //* 0.5;
             }
+            
+            lastAlpha = alpha;
+            lastBeta = beta;
 
             // Actualizar display de depuración
             document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';

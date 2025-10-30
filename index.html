@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Mapa Conceptual de Liderazgo</title>
+    <title>Mapa Conceptual de Procesos Psicológicos (TCC)</title>
     
     <script async src="https://unpkg.com/es-module-shims@1.6.3/dist/es-module-shims.js"></script>
     <script type="importmap">
@@ -154,7 +154,7 @@
     </style>
 </head>
 <body>
-    <div id="info">Mapa Conceptual de Liderazgo</div>
+    <div id="info">Mapa Conceptual de Procesos Psicológicos (TCC)</div>
     
     <button id="gyro-btn">Activar Giroscopio</button>
 
@@ -185,102 +185,162 @@
         const NETWORK_RADIUS = 800; // Aumentado para dar más espacio al grafo
 
         const concepts = [
-            { id: 'liderazgo', name: 'Liderazgo', category: 'root' },
-            { id: 'enfoque_conductual', name: 'Enfoque Conductual', category: 'approach' },
-            { id: 'ohio_state', name: 'Ohaio State University', category: 'study' },
-            { id: 'iniciacion_estructura', name: 'Iniciación de Estructura', category: 'concept' },
-            { id: 'consideracion', name: 'Consideración', category: 'concept' },
-            { id: 'liderazgo_efectivo', name: 'Liderazgo Efectivo', category: 'concept' },
-            { id: 'orientacion_empleado', name: 'Orientación al Empleado', category: 'concept' },
-            { id: 'orientacion_produccion', name: 'Orientación a la Producción', category: 'concept' },
-            { id: 'enfoque_situacional', name: 'Enfoque Situacional', category: 'approach' },
-            { id: 'contexto', name: 'Contexto Situacional', category: 'concept' },
-            { id: 'hersey_blanchard', name: 'Teoría de Hersey y Blanchard', category: 'theory' },
-            { id: 'nivel_desarrollo', name: 'Nivel de Desarrollo (Seguidores)', category: 'concept' },
-            { id: 'delegar', name: 'Estilo: Delegar', category: 'style' },
-            { id: 'entrenar', name: 'Estilo: Entrenar', category: 'style' },
-            { id: 'dirigir', name: 'Estilo: Dirigir', category: 'style' },
-            { id: 'apoyar', name: 'Estilo: Apoyar', category: 'style' },
-            { id: 'contingencia', name: 'Teoría de la Contingencia', category: 'theory' },
-            { id: 'relacion_lider_seguidor', name: 'Relación Líder-Seguidor', category: 'concept' },
-            { id: 'estructura_tarea', name: 'Estructura de la Tarea', category: 'concept' },
-            { id: 'poder_lider', name: 'Poder del Líder', category: 'concept' },
-            { id: 'lpc', name: 'Trabajador Menos Preferido (LPC)', category: 'concept' },
-            { id: 'camino_meta', name: 'Teoría del Camino-Meta', category: 'theory' },
-            { id: 'motivacion', name: 'Motivación (Empleado)', category: 'concept' },
-            { id: 'lider_directivo', name: 'Liderazgo Directivo (Camino-Meta)', category: 'style' },
-            { id: 'lider_considerado', name: 'Liderazgo Considerado (Camino-Meta)', category: 'style' },
-            { id: 'lider_participativo', name: 'Liderazgo Participativo (Camino-Meta)', category: 'style' },
-            { id: 'lider_metas', name: 'Liderazgo Orientado a Metas (Camino-Meta)', category: 'style' },
-            { id: 'lmx', name: 'Teoría LMX', category: 'theory' },
-            { id: 'endogrupo', name: 'Endogrupo', category: 'concept' },
-            { id: 'exogrupo', name: 'Exogrupo', category: 'concept' },
-            { id: 'adaptar_estilo', name: 'Adaptar Estilo', category: 'concept' }
+            // Raíz y Modelos
+            { id: 'psicologia_cognitiva', name: 'Psicología Cognitiva', category: 'root', emoji: '🧠' },
+            { id: 'tcc', name: 'TCC', category: 'therapy_model', emoji: '🔄' },
+            { id: 'olas_tcc', name: 'Olas de la TCC', category: 'therapy_model', emoji: '🌊' },
+            { id: 'ola_1', name: '1ra Ola (Investigación)', category: 'therapy_model', emoji: '🔬' },
+            { id: 'ola_2', name: '2da Ola (Clínica TCC)', category: 'therapy_model', emoji: '🧑‍⚕️' },
+            { id: 'ola_3', name: '3ra Ola (Calidad de Vida)', category: 'therapy_model', emoji: '🧘' },
+            { id: 'terapias_complementarias', name: 'Terapias Complementarias', category: 'therapy_model', emoji: '✨' },
+            { id: 'mindfulness', name: 'Mindfulness', category: 'therapeutic_tool', emoji: '🧘' },
+
+            // Conceptos Centrales
+            { id: 'cognicion', name: 'Cognición', category: 'core_concept', emoji: '💡' },
+            { id: 'triada_cognitiva', name: 'Tríada Cognitiva', category: 'core_concept', emoji: '🔗' },
+            { id: 'pensamiento', name: 'Pensamiento', category: 'core_concept', emoji: '🤔' },
+            { id: 'emocion', name: 'Emoción', category: 'core_concept', emoji: '😊' },
+            { id: 'conducta', name: 'Conducta', category: 'core_concept', emoji: '🏃' },
+            { id: 'afecto', name: 'Afecto', category: 'core_concept', emoji: '❤️' },
+            { id: 'estado_animo', name: 'Estado de Ánimo', category: 'core_concept', emoji: '☁️' },
+            { id: 'patrones', name: 'Patrones', category: 'core_concept', emoji: '🔁' },
+            { id: 'distorsiones_cognitivas', name: 'Distorsiones Cognitivas', category: 'symptom', emoji: '🌪️' },
+            { id: 'pensamiento_dicotomico', name: 'Pensamiento Dicotómico', category: 'symptom', emoji: '⚫⚪' },
+            { id: 'sobregeneralizacion', name: 'Sobregeneralización', category: 'symptom', emoji: '📈' },
+            { id: 'catastrofismo', name: 'Catastrofismo', category: 'symptom', emoji: '💥' },
+
+            // Patologías y Síntomas
+            { id: 'trastorno', name: 'Trastorno', category: 'pathology', emoji: '🩺' },
+            { id: 'desorden', name: 'Desorden', category: 'pathology', emoji: '⚠️' },
+            { id: 'depresion', name: 'Depresión', category: 'pathology', emoji: '🌧️' },
+            { id: 'depresion_mayor', name: 'Depresión Mayor', category: 'pathology', emoji: '📉' },
+            { id: 'melancolia', name: 'Melancolía', category: 'pathology', emoji: '🥀' },
+            { id: 'triada_depresion', name: 'Tríada Cognitiva de la Depresión', category: 'pathology', emoji: '⛓️' },
+            { id: 'vision_neg_simismo', name: 'Visión Negativa (Sí Mismo)', category: 'symptom', emoji: '🙍' },
+            { id: 'vision_neg_entorno', name: 'Visión Negativa (Entorno)', category: 'symptom', emoji: '🌍' },
+            { id: 'vision_neg_futuro', name: 'Visión Negativa (Futuro)', category: 'symptom', emoji: '🔮' },
+            { id: 'tristeza_vital', name: 'Tristeza Vital', category: 'symptom', emoji: '💧' },
+            { id: 'anhedonia', name: 'Anhedonia', category: 'symptom', emoji: '🚫🎉' },
+            { id: 'inhibicion_psicomotriz', name: 'Inhibición Psicomotriz', category: 'symptom', emoji: '🐌' },
+            { id: 'trauma_residual', name: 'Trauma Residual', category: 'pathology', emoji: '🩹' },
+
+            // Proceso Terapéutico
+            { id: 'relacion_terapeutica', name: 'Relación Terapéutica', category: 'therapeutic_process', emoji: '🤝' },
+            { id: 'alianza_terapeutica', name: 'Alianza Terapéutica', category: 'therapeutic_process', emoji: '🧑‍⚕️🤝🧑' },
+            { id: 'admision_tcc', name: 'Proceso de Admisión (TCC)', category: 'therapeutic_process', emoji: '📋' },
+            { id: 'empatia', name: 'Empatía', category: 'therapeutic_process', emoji: '🤗' },
+            { id: 'empatia_cognitiva', name: 'Empatía Cognitiva', category: 'therapeutic_process', emoji: '🧠💡' },
+            { id: 'empatia_emocional', name: 'Empatía Emocional', category: 'therapeutic_process', emoji: '❤️‍🩹' },
+            { id: 'ecpatia', name: 'Ecpatía', category: 'therapeutic_process', emoji: '🛡️' },
+            { id: 'iatrogenia', name: 'Iatrogenia', category: 'therapeutic_process', emoji: '💔' },
+            { id: 'furor_curandis', name: 'Furor Curandis', category: 'therapeutic_process', emoji: '🏃‍♂️💨' },
+            { id: 'sanar', name: 'Sanar', category: 'therapeutic_process', emoji: '🌱' },
+            { id: 'curar', name: 'Curar', category: 'therapeutic_process', emoji: '💊' },
+
+            // Herramientas Terapéuticas
+            { id: 'psicoeducacion', name: 'Psicoeducación', category: 'therapeutic_tool', emoji: '📚' },
+            { id: 'bitacora', name: 'Bitácora', category: 'therapeutic_tool', emoji: '📓' },
+            { id: 'tecnicas_tcc', name: 'Técnicas TCC', category: 'therapeutic_tool', emoji: '🛠️' },
+            { id: 'tecnicas_cognitivas', name: 'Técnicas Cognitivas', category: 'therapeutic_tool', emoji: '🧠🔄' },
+            { id: 'tecnicas_conductuales', name: 'Técnicas Conductuales', category: 'therapeutic_tool', emoji: '🏃🔄' },
+            { id: 'reestructuracion_cognitiva', name: 'Reestructuración Cognitiva', category: 'therapeutic_tool', emoji: '🏗️' },
+            { id: 'activacion_conductual', name: 'Activación Conductual', category: 'therapeutic_tool', emoji: '🚀' },
+            { id: 'exposicion_gradual', name: 'Exposición Gradual', category: 'therapeutic_tool', emoji: '🪜' },
+            { id: 'recaida_programada', name: 'Recaída Programada', category: 'therapeutic_tool', emoji: '☔' },
+
+            // Roles
+            { id: 'paciente', name: 'Paciente', category: 'personnel', emoji: '🧑' },
+            { id: 'cliente', name: 'Cliente', category: 'personnel', emoji: '💼' },
+            { id: 'consultante', name: 'Consultante', category: 'personnel', emoji: '🗣️' },
+            { id: 'adalid_estrategico', name: 'Adalid Estratégico', category: 'personnel', emoji: '🛡️🤝' }
         ];
 
         const relationships = [
-            { source: 'liderazgo', target: 'enfoque_conductual', label: 'incluye' },
-            { source: 'liderazgo', target: 'enfoque_situacional', label: 'incluye' },
-            { source: 'liderazgo', target: 'liderazgo_efectivo', label: 'busca' },
-            
-            // Enfoque Conductual
-            { source: 'enfoque_conductual', target: 'ohio_state', label: 'estudiado por' },
-            { source: 'ohio_state', target: 'iniciacion_estructura', label: 'define' },
-            { source: 'ohio_state', target: 'consideracion', label: 'define' },
-            { source: 'liderazgo_efectivo', target: 'iniciacion_estructura', label: 'requiere' },
-            { source: 'liderazgo_efectivo', target: 'consideracion', label: 'requiere' },
-            { source: 'enfoque_conductual', target: 'orientacion_empleado', label: 'identifica' },
-            { source: 'enfoque_conductual', target: 'orientacion_produccion', label: 'identifica' },
+            // Raíz y Modelos
+            { source: 'psicologia_cognitiva', target: 'cognicion', label: 'estudia la' },
+            { source: 'psicologia_cognitiva', target: 'olas_tcc', label: 'evoluciona en' },
+            { source: 'olas_tcc', target: 'ola_1', label: 'incluye' },
+            { source: 'olas_tcc', target: 'ola_2', label: 'incluye' },
+            { source: 'olas_tcc', target: 'ola_3', label: 'incluye' },
+            { source: 'ola_2', target: 'tcc', label: 'establece la' },
+            { source: 'ola_3', target: 'terapias_complementarias', label: 'incorpora' },
+            { source: 'terapias_complementarias', target: 'mindfulness', label: 'ejemplo' },
+            { source: 'tcc', target: 'triada_cognitiva', label: 'se basa en' },
+            { source: 'tcc', target: 'psicoeducacion', label: 'utiliza' },
+            { source: 'tcc', target: 'tecnicas_tcc', label: 'utiliza' },
+            { source: 'tcc', target: 'relacion_terapeutica', label: 'requiere' },
+            { source: 'tcc', target: 'admision_tcc', label: 'inicia con' },
 
-            // Enfoque Situacional
-            { source: 'enfoque_situacional', target: 'contexto', label: 'enfatiza' },
-            { source: 'enfoque_situacional', target: 'adaptar_estilo', label: 'requiere' },
-            { source: 'adaptar_estilo', target: 'contexto', label: 'según el' },
-            { source: 'enfoque_situacional', target: 'hersey_blanchard', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'contingencia', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'camino_meta', label: 'incluye' },
-            { source: 'enfoque_situacional', target: 'lmx', label: 'incluye' },
+            // Conceptos Centrales
+            { source: 'triada_cognitiva', target: 'pensamiento', label: 'compuesta por' },
+            { source: 'triada_cognitiva', target: 'emocion', label: 'compuesta por' },
+            { source: 'triada_cognitiva', target: 'conducta', label: 'compuesta por' },
+            { source: 'cognicion', target: 'distorsiones_cognitivas', label: 'puede tener' },
+            { source: 'pensamiento', target: 'distorsiones_cognitivas', label: 'puede ser' },
+            { source: 'distorsiones_cognitivas', target: 'pensamiento_dicotomico', label: 'ejemplo' },
+            { source: 'distorsiones_cognitivas', target: 'sobregeneralizacion', label: 'ejemplo' },
+            { source: 'distorsiones_cognitivas', target: 'catastrofismo', label: 'ejemplo' },
+            { source: 'emocion', target: 'estado_animo', label: 'prolongada es' },
+            { source: 'emocion', target: 'afecto', label: 'dif. de' },
+            { source: 'patrones', target: 'pensamiento', label: 'incluye' },
+            { source: 'patrones', target: 'emocion', label: 'incluye' },
+            { source: 'patrones', target: 'conducta', label: 'incluye' },
 
-            // Hersey & Blanchard
-            { source: 'hersey_blanchard', target: 'nivel_desarrollo', label: 'se basa en' },
-            { source: 'hersey_blanchard', target: 'delegar', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'entrenar', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'dirigir', label: 'define estilo' },
-            { source: 'hersey_blanchard', target: 'apoyar', label: 'define estilo' },
-            { source: 'nivel_desarrollo', target: 'dirigir', label: 'bajo, requiere' },
-            { source: 'nivel_desarrollo', target: 'entrenar', label: 'bajo-moderado, requiere' },
-            { source: 'nivel_desarrollo', target: 'apoyar', label: 'moderado-alto, requiere' },
-            { source: 'nivel_desarrollo', target: 'delegar', label: 'alto, requiere' },
+            // Patologías
+            { source: 'trastorno', target: 'desorden', label: 'dif. de' },
+            { source: 'trastorno', target: 'paciente', label: 'define al' },
+            { source: 'depresion', target: 'trastorno', label: 'es un' },
+            { source: 'depresion', target: 'triada_depresion', label: 'explicada por' },
+            { source: 'depresion', target: 'tristeza_vital', label: 'síntoma patognomónico' },
+            { source: 'depresion', target: 'anhedonia', label: 'síntoma patognomónico' },
+            { source: 'depresion', target: 'inhibicion_psicomotriz', label: 'síntoma patognomónico' },
+            { source: 'triada_depresion', target: 'vision_neg_simismo', label: 'incluye' },
+            { source: 'triada_depresion', target: 'vision_neg_entorno', label: 'incluye' },
+            { source: 'triada_depresion', target: 'vision_neg_futuro', label: 'incluye' },
+            { source: 'depresion_mayor', target: 'melancolia', label: 'dif. de' },
+            { source: 'depresion_mayor', target: 'curar', label: 'se puede' },
+            { source: 'melancolia', target: 'sanar', label: 'se puede (tratar)' },
+            { source: 'sanar', target: 'curar', label: 'dif. de' },
+            { source: 'sanar', target: 'trauma_residual', label: 'implica elaborar' },
 
-            // Contingencia
-            { source: 'contingencia', target: 'relacion_lider_seguidor', label: 'depende de' },
-            { source: 'contingencia', target: 'estructura_tarea', label: 'depende de' },
-            { source: 'contingencia', target: 'poder_lider', label: 'depende de' },
-            { source: 'contingencia', target: 'lpc', label: 'usa' },
-            { source: 'lpc', target: 'orientacion_empleado', label: 'mide' },
-            { source: 'lpc', target: 'orientacion_produccion', label: 'mide' },
-            
-            // Camino-Meta
-            { source: 'camino_meta', target: 'motivacion', label: 'enfocado en' },
-            { source: 'motivacion', target: 'camino_meta', label: 'líder remueve obstáculos para' },
-            { source: 'camino_meta', target: 'lider_directivo', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_considerado', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_participativo', label: 'define estilo' },
-            { source: 'camino_meta', target: 'lider_metas', label: 'define estilo' },
+            // Proceso Terapéutico
+            { source: 'relacion_terapeutica', target: 'alianza_terapeutica', label: 'construye' },
+            { source: 'relacion_terapeutica', target: 'empatia', label: 'requiere' },
+            { source: 'relacion_terapeutica', target: 'iatrogenia', label: 'evita la' },
+            { source: 'empatia', target: 'ecpatia', label: 'requiere balance con' },
+            { source: 'empatia', target: 'empatia_cognitiva', label: 'tipo de' },
+            { source: 'empatia', target: 'empatia_emocional', label: 'tipo de' },
+            { source: 'iatrogenia', target: 'furor_curandis', label: 'causada por' },
 
-            // LMX
-            { source: 'lmx', target: 'relacion_lider_seguidor', label: 'se enfoca en' },
-            { source: 'lmx', target: 'endogrupo', label: 'crea' },
-            { source: 'lmx', target: 'exogrupo', label: 'crea' }
+            // Herramientas
+            { source: 'bitacora', target: 'triada_cognitiva', label: 'registra la' },
+            { source: 'bitacora', target: 'distorsiones_cognitivas', label: 'identifica' },
+            { source: 'tecnicas_tcc', target: 'tecnicas_cognitivas', label: 'incluye' },
+            { source: 'tecnicas_tcc', target: 'tecnicas_conductuales', label: 'incluye' },
+            { source: 'tecnicas_cognitivas', target: 'reestructuracion_cognitiva', label: 'ejemplo' },
+            { source: 'reestructuracion_cognitiva', target: 'distorsiones_cognitivas', label: 'modifica' },
+            { source: 'tecnicas_conductuales', target: 'activacion_conductual', label: 'ejemplo' },
+            { source: 'tecnicas_conductuales', target: 'exposicion_gradual', label: 'ejemplo' },
+            { source: 'activacion_conductual', target: 'depresion', label: 'útil en' },
+            { source: 'recaida_programada', target: 'tecnicas_tcc', label: 'es una' },
+
+            // Roles
+            { source: 'paciente', target: 'cliente', label: 'dif. de' },
+            { source: 'paciente', target: 'consultante', label: 'dif. de' },
+            { source: 'adalid_estrategico', target: 'paciente', label: 'acompaña al' },
+            { source: 'adalid_estrategico', target: 'depresion_mayor', label: 'necesario en' }
         ];
+
 
         const categoryColors = {
             root: new THREE.Color(0xff0044), // Rojo
-            approach: new THREE.Color(0x0088ff), // Azul
-            theory: new THREE.Color(0x00ff88), // Verde
-            concept: new THREE.Color(0xff8800), // Naranja
-            style: new THREE.Color(0xaa00ff), // Púrpura
-            study: new THREE.Color(0xcccccc) // Gris
+            therapy_model: new THREE.Color(0x0088ff), // Azul
+            core_concept: new THREE.Color(0xff8800), // Naranja
+            pathology: new THREE.Color(0xaa00ff), // Púrpura
+            therapeutic_tool: new THREE.Color(0x00ff88), // Verde
+            therapeutic_process: new THREE.Color(0x00ffff), // Cian
+            personnel: new THREE.Color(0xffff00), // Amarillo
+            symptom: new THREE.Color(0xcccccc) // Gris
         };
 
         // --- INICIALIZACIÓN DE LA ESCENA 3D ---
@@ -345,10 +405,16 @@
             nodeGroup.position.y = (Math.random() - 0.5) * NETWORK_RADIUS;
             nodeGroup.position.z = (Math.random() - 0.5) * NETWORK_RADIUS;
             
-            const labelSprite = makeTextSprite(concept.name, {
+            // --- MODIFICACIÓN AQUÍ ---
+            // Se concatena el emoji con el nombre del concepto
+            const labelMessage = concept.emoji + " " + concept.name;
+            
+            const labelSprite = makeTextSprite(labelMessage, {
                 fontsize: 24,
                 textColor: { r: color.r * 255, g: color.g * 255, b: color.b * 255, a: 1.0 }
             });
+            // --- FIN DE LA MODIFICACIÓN ---
+            
             labelSprite.position.set(0, 6, 0);
 
             nodeGroup.add(nodeMesh);

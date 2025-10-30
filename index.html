@@ -469,9 +469,8 @@
             if (alpha !== null && beta !== null) {
                 // Acumular cambios para rotación suave
                 if (lastAlpha !== null && lastBeta !== null) {
-                    // Invertir los giros: cambia el signo de los deltas
-                    const deltaAlpha = -(alpha - lastAlpha) * Math.PI / 180;
-                    const deltaBeta = -(beta - lastBeta) * Math.PI / 180;
+                    const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                    const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                     
                     // Limitar beta para evitar inversión
                     const newBeta = camera.rotation.x - deltaBeta;

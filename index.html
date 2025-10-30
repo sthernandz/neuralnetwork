@@ -161,7 +161,6 @@
     <div id="debug-info">
         <div>Alpha: <span id="gyro-alpha">N/A</span></div>
         <div>Beta: <span id="gyro-beta">N/A</span></div>
-        <div>Gamma: <span id="gyro-gamma">N/A</span></div>
         <div>Camera X: <span id="cam-x">N/A</span></div>
         <div>Camera Y: <span id="cam-y">N/A</span></div>
     </div>
@@ -183,7 +182,7 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
         // --- CONFIGURACIÓN DEL MAPA CONCEPTUAL ---
-        const NETWORK_RADIUS = 800; 
+        const NETWORK_RADIUS = 800; // Aumentado para dar más espacio al grafo
 
         const concepts = [
             { id: 'liderazgo', name: 'Liderazgo', category: 'root' },
@@ -429,7 +428,6 @@
         let gyroEnabled = false;
         let lastAlpha = null;
         let lastBeta = null;
-        let lastGamma = null; // *** AÑADIDO ***
 
         async function enableGyro() {
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -457,71 +455,29 @@
             window.addEventListener('deviceorientation', handleOrientation);
         }
 
-        // *** FUNCIÓN MODIFICADA ***
         function handleOrientation(event) {
             if (!gyroEnabled) return;
 
-            const alpha = event.alpha; // Rotación Z (0-360) - Yaw/Brújula
-            const beta = event.beta;   // Rotación X (-180 a 180) - Pitch/Inclinación
-            const gamma = event.gamma; // Rotación Y (-90 a 90) - Roll/Giro lateral
+            const alpha = event.alpha; // Rotación Z (0-360)
+            const beta = event.beta;   // Rotación X (-180 a 180)
             
-            if (lastAlpha !== null && lastBeta !== null && lastGamma !== null) {
+            if (lastAlpha !== null && lastBeta !== null) {
+                const deltaAlpha = (alpha - lastAlpha) * Math.PI / 180;
+                const deltaBeta = (beta - lastBeta) * Math.PI / 180;
                 
-                let deltaAlpha = alpha - lastAlpha;
-                let deltaBeta = beta - lastBeta;
-                let deltaGamma = gamma - lastGamma;
-
-                // Manejar el "wrap-around" de alpha (cuando pasa de 359 a 0 o viceversa)
-                if (deltaAlpha > 180) deltaAlpha -= 360;
-                else if (deltaAlpha < -180) deltaAlpha += 360;
-                
-                // Convertir deltas a radianes
-                const radDeltaAlpha = deltaAlpha * Math.PI / 180;
-                const radDeltaBeta = deltaBeta * Math.PI / 180;
-                const radDeltaGamma = deltaGamma * Math.PI / 180;
-                
-                // --- Corrección de Gimbal Lock ---
-                
-                // 1. Pitch (mirar arriba/abajo) siempre es controlado por beta.
-                camera.rotation.x += radDeltaBeta;
-                
-                // 2. Yaw (girar izq/der) depende de la inclinación (beta).
-                const threshold = 75.0; // Umbral en grados (cerca de los 80-90 que mencionaste)
-                
-                if (Math.abs(beta) > threshold) {
-                    // Teléfono casi vertical (beta > 75 o beta < -75)
-                    // El "Yaw" (giro) ahora es controlado por gamma (roll).
-                    
-                    if (beta > 0) {
-                        // Apuntando arriba: inclinar izq (gamma +) es girar izq (yaw -)
-                        // (Mantenemos la lógica original de que alpha+ causa y-)
-                        camera.rotation.y -= radDeltaGamma;
-                    } else {
-                        // Apuntando abajo: inclinar izq (gamma +) es girar der (yaw +)
-                        // Se invierte el control
-                        camera.rotation.y += radDeltaGamma;
-                    }
-                    
-                } else {
-                    // Teléfono "plano" (beta entre -75 y 75)
-                    // El "Yaw" (giro) es controlado por alpha (brújula)
-                    camera.rotation.y -= radDeltaAlpha; // Lógica original
-                }
-                
-                // 3. Limitar el pitch (mirar arriba/abajo)
-                camera.rotation.x = Math.max(-80 * Math.PI / 180, Math.min(80 * Math.PI / 180, camera.rotation.x));
+                camera.rotation.y += deltaAlpha; //* 0.5;
+                camera.rotation.x += deltaBeta; //* 0.5;
             }
             
-            // Guardar los últimos valores
             lastAlpha = alpha;
             lastBeta = beta;
-            lastGamma = gamma;
 
             // Actualizar display de depuración
             document.getElementById('gyro-alpha').textContent = alpha !== null ? alpha.toFixed(2) : 'N/A';
             document.getElementById('gyro-beta').textContent = beta !== null ? beta.toFixed(2) : 'N/A';
-            document.getElementById('gyro-gamma').textContent = gamma !== null ? gamma.toFixed(2) : 'N/A'; // *** AÑADIDO ***
         }
+
+        document.getElementById('gyro-btn').addEventListener('click', enableGyro);
 
         // --- CONTROL DE RATÓN (DESKTOP) ---
         document.addEventListener('mousemove', onDocumentMouseMove);
